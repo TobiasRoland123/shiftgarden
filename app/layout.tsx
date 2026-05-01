@@ -1,3 +1,5 @@
+import { NextIntlClientProvider } from "next-intl"
+import { getLocale, getMessages } from "next-intl/server"
 import { Geist_Mono, Inter, Montserrat } from "next/font/google"
 
 import "./globals.css"
@@ -17,14 +19,17 @@ const fontMono = Geist_Mono({
   variable: "--font-mono",
 })
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
       className={cn(
         "antialiased",
@@ -35,10 +40,12 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ThemeProvider>
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

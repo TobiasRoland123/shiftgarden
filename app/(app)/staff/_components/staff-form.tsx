@@ -1,6 +1,7 @@
 "use client"
 
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -38,6 +39,9 @@ type Props = {
 
 export function StaffForm({ mode, staffId, initial }: Props) {
   const router = useRouter()
+  const t = useTranslations("StaffForm")
+  const tValidation = useTranslations("Validation")
+  const tRoles = useTranslations("Roles")
   const [submitting, setSubmitting] = useState(false)
 
   const form = useForm<StaffInput>({
@@ -51,22 +55,32 @@ export function StaffForm({ mode, staffId, initial }: Props) {
     },
   })
 
+  // Resolve any validation message that's a known translation key.
+  function translateError(message: string | undefined) {
+    if (!message) return undefined
+    if (message.startsWith("Validation.")) {
+      const key = message.slice("Validation.".length)
+      return tValidation(key as Parameters<typeof tValidation>[0])
+    }
+    return message
+  }
+
   async function onSubmit(values: StaffInput) {
     setSubmitting(true)
     try {
       if (mode === "create") {
         const { id } = await createStaff(values)
-        toast.success("Staff created")
+        toast.success(t("toasts.created"))
         router.push(`/staff/${id}`)
         router.refresh()
       } else if (staffId) {
         await updateStaff(staffId, values)
-        toast.success("Saved")
+        toast.success(t("toasts.saved"))
         router.refresh()
       }
     } catch (err) {
       console.error(err)
-      toast.error("Save failed")
+      toast.error(t("toasts.saveFailed"))
     } finally {
       setSubmitting(false)
     }
@@ -81,35 +95,39 @@ export function StaffForm({ mode, staffId, initial }: Props) {
         <FormField
           control={form.control}
           name="name"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>{t("labels.name")}</FormLabel>
               <FormControl>
                 <Input autoFocus {...field} />
               </FormControl>
-              <FormMessage />
+              <FormMessage>
+                {translateError(fieldState.error?.message)}
+              </FormMessage>
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
           name="email"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t("labels.email")}</FormLabel>
               <FormControl>
                 <Input type="email" {...field} value={field.value ?? ""} />
               </FormControl>
-              <FormMessage />
+              <FormMessage>
+                {translateError(fieldState.error?.message)}
+              </FormMessage>
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
           name="role"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel>Role</FormLabel>
+              <FormLabel>{t("labels.role")}</FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
@@ -119,21 +137,23 @@ export function StaffForm({ mode, staffId, initial }: Props) {
                 <SelectContent>
                   {ROLES.map((r) => (
                     <SelectItem key={r} value={r}>
-                      {r}
+                      {tRoles(r)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <FormMessage />
+              <FormMessage>
+                {translateError(fieldState.error?.message)}
+              </FormMessage>
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
           name="weeklyContractHours"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel>Weekly contract hours</FormLabel>
+              <FormLabel>{t("labels.weeklyContractHours")}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -143,14 +163,16 @@ export function StaffForm({ mode, staffId, initial }: Props) {
                   onChange={(e) => field.onChange(e.target.valueAsNumber)}
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage>
+                {translateError(fieldState.error?.message)}
+              </FormMessage>
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
           name="active"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem className="flex flex-row items-center gap-2">
               <FormControl>
                 <input
@@ -160,18 +182,20 @@ export function StaffForm({ mode, staffId, initial }: Props) {
                   className="size-4"
                 />
               </FormControl>
-              <FormLabel className="!mt-0">Active</FormLabel>
-              <FormMessage />
+              <FormLabel className="!mt-0">{t("labels.active")}</FormLabel>
+              <FormMessage>
+                {translateError(fieldState.error?.message)}
+              </FormMessage>
             </FormItem>
           )}
         />
         <div>
           <Button type="submit" disabled={submitting}>
             {submitting
-              ? "Saving…"
+              ? t("buttons.saving")
               : mode === "create"
-                ? "Create staff"
-                : "Save"}
+                ? t("buttons.create")
+                : t("buttons.save")}
           </Button>
         </div>
       </form>

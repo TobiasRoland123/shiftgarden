@@ -8,6 +8,7 @@ import {
   Users,
   UsersRound,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
@@ -25,20 +26,21 @@ import {
 } from "@/components/ui/sidebar"
 
 const nav = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/staff", label: "Staff", icon: Users },
-  { href: "/groups", label: "Groups", icon: UsersRound },
-  { href: "/plan", label: "Plan", icon: CalendarDays },
-  { href: "/absences", label: "Absences", icon: Palmtree },
+  { href: "/", labelKey: "dashboard", icon: LayoutDashboard },
+  { href: "/staff", labelKey: "staff", icon: Users },
+  { href: "/groups", labelKey: "groups", icon: UsersRound },
+  { href: "/plan", labelKey: "plan", icon: CalendarDays },
+  { href: "/absences", labelKey: "absences", icon: Palmtree },
 ] as const
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const t = useTranslations("Sidebar")
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="px-2 py-1 text-sm font-semibold">Shiftgarden</div>
+        <div className="px-2 py-1 text-sm font-semibold">{t("appName")}</div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -54,7 +56,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild isActive={active}>
                       <Link href={item.href}>
                         <item.icon />
-                        <span>{item.label}</span>
+                        <span>{t(item.labelKey)}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -71,7 +73,7 @@ export function AppSidebar() {
               onClick={() => signOut({ redirectTo: "/login" })}
             >
               <LogOut />
-              <span>Sign out</span>
+              <span>{t("signOut")}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
