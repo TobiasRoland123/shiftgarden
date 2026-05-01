@@ -5,6 +5,12 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 
 import { authConfig } from "@/lib/auth.config"
+
+// Equalise timing on the user-miss path so latency can't be used
+// to enumerate accounts. Bcrypt hash of an unguessable random string.
+const DUMMY_HASH =
+  "$2b$10$CwTycUXWue0Thq9StjUM0uJ8.4Yk3K6Z2YkF1QKtqgLwQ6sGq2y3a"
+
 import { db } from "@/lib/db"
 import { credentialsSchema } from "@/lib/validation/auth"
 import {
@@ -40,7 +46,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .where(eq(users.email, parsed.data.email))
           .limit(1)
 
-        if (!user?.password) return null
+        if (!user?.password) {
+          await bcrypt.compare(parsed.data.password, DUMMY_HASH)
+          return null
+        }
 
         const ok = await bcrypt.compare(parsed.data.password, user.password)
         if (!ok) return null
