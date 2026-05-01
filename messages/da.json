@@ -1,0 +1,57 @@
+{
+  "Sidebar": {
+    "appName": "Shiftgarden",
+    "dashboard": "Oversigt",
+    "staff": "Personale",
+    "groups": "Grupper",
+    "plan": "Plan",
+    "absences": "Fravær",
+    "signOut": "Log ud"
+  },
+  "StaffPage": {
+    "title": "Personale",
+    "newStaff": "Nyt personale",
+    "empty": "Ingen personale endnu. Klik på “Nyt personale” for at tilføje.",
+    "emDash": "—",
+    "status": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "columns": {
+      "name": "Navn",
+      "role": "Rolle",
+      "email": "E-mail",
+      "contractHours": "Kontrakt t/uge",
+      "status": "Status"
+    }
+  },
+  "StaffForm": {
+    "labels": {
+      "name": "Navn",
+      "email": "E-mail",
+      "role": "Rolle",
+      "weeklyContractHours": "Ugentlige kontrakttimer",
+      "active": "Aktiv"
+    },
+    "buttons": {
+      "create": "Opret personale",
+      "save": "Gem",
+      "saving": "Gemmer…"
+    },
+    "toasts": {
+      "created": "Personale oprettet",
+      "saved": "Gemt",
+      "saveFailed": "Kunne ikke gemme"
+    }
+  },
+  "Roles": {
+    "pedagogue": "Pædagog",
+    "assistant": "Medhjælper",
+    "substitute": "Vikar"
+  },
+  "Validation": {
+    "nameRequired": "Navn er påkrævet",
+    "timeFormat": "Brug TT:MM",
+    "endAfterStart": "Slut skal være efter start"
+  }
+}
