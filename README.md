@@ -1,21 +1,27 @@
-# Next.js template
+# Shiftgarden
 
-This is a Next.js template with shadcn/ui.
+Single-tenant Danish daycare staff planner. See [plans/mvp.md](plans/mvp.md) and [plans/implementation-roadmap.md](plans/implementation-roadmap.md).
 
-## Adding components
+## Local setup
 
-To add components to your app, run the following command:
+1. Create a Neon project + dev branch and copy its `DATABASE_URL`.
+2. `cp .env.example .env.local` and fill in `DATABASE_URL`, `AUTH_SECRET` (`openssl rand -base64 32`), `SEED_PLANNER_EMAIL`, `SEED_PLANNER_PASSWORD`.
+3. `pnpm install`
+4. `pnpm db:generate && pnpm db:migrate`
+5. `pnpm seed` — creates the planner user.
+6. `pnpm dev` and sign in at <http://localhost:3000/login>.
+
+## Scripts
+
+- `pnpm dev` — Next.js dev server
+- `pnpm typecheck` — `tsc --noEmit`
+- `pnpm db:generate` — generate Drizzle migration from `drizzle/schema.ts`
+- `pnpm db:migrate` — apply migrations to `DATABASE_URL`
+- `pnpm db:studio` — Drizzle Studio
+- `pnpm seed` — seed the planner user from env
+
+## Adding shadcn components
 
 ```bash
-npx shadcn@latest add button
-```
-
-This will place the ui components in the `components` directory.
-
-## Using components
-
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button";
+pnpm dlx shadcn add <component>
 ```
