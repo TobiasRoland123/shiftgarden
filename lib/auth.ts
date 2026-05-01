@@ -40,11 +40,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const parsed = credentialsSchema.safeParse(raw)
         if (!parsed.success) return null
 
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(eq(users.email, parsed.data.email))
-          .limit(1)
+        let user: (typeof users.$inferSelect) | undefined
+        try {
+          ;[user] = await db
+            .select()
+            .from(users)
+            .where(eq(users.email, parsed.data.email))
+            .limit(1)
+        } catch {
+          // DB unavailable or not migrated — fail closed without a 500
+          return null
+        }
 
         if (!user?.password) {
           await bcrypt.compare(parsed.data.password, DUMMY_HASH)

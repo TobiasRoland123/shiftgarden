@@ -116,6 +116,14 @@ describe("credentials authorize", () => {
     ).resolves.toBeNull()
   })
 
+  it("returns null when the db query throws", async () => {
+    limitMock.mockRejectedValueOnce(new Error("relation does not exist"))
+
+    await expect(
+      authorize({ email: "user@example.com", password: "secret" })
+    ).resolves.toBeNull()
+  })
+
   it("returns id/email/name when password matches", async () => {
     limitMock.mockResolvedValueOnce([
       { id: "u1", email: "user@example.com", name: "User", password: "hashed" },
