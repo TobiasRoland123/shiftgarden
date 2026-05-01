@@ -17,12 +17,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { staff } from "@/drizzle/schema"
+import { staff, staffAvailability } from "@/drizzle/schema"
 import { db } from "@/lib/db"
 import { cn } from "@/lib/utils"
 
 export default async function StaffPage() {
   const rows = await db.select().from(staff).orderBy(staff.name)
+  const availabilityRows = await db
+    .select({
+      staffId: staffAvailability.staffId,
+      weekday: staffAvailability.weekday,
+    })
+    .from(staffAvailability)
+  const availabilityByStaff = new Map<string, boolean[]>()
+  for (const row of availabilityRows) {
+    if (row.weekday < 0 || row.weekday > 4) continue
+    let avail = availabilityByStaff.get(row.staffId)
+    if (!avail) {
+      avail = [false, false, false, false, false]
+      availabilityByStaff.set(row.staffId, avail)
+    }
+    avail[row.weekday] = true
+  }
   const t = await getTranslations("StaffPage")
   const tRoles = await getTranslations("Roles")
   const tWeekdays = await getTranslations("Weekdays.Short")
@@ -34,7 +50,7 @@ export default async function StaffPage() {
     tWeekdays("tu"),
     tWeekdays("f"),
   ]
-  const fallbackAvail: boolean[] = [true, true, true, true, true]
+  const noAvailability: boolean[] = [false, false, false, false, false]
   return (
     <>
       <PageHeader
@@ -90,78 +106,80 @@ export default async function StaffPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                rows.map((s) => (
-                  <TableRow key={s.id}>
-                    <TableCell>
-                      <Link
-                        href={`/staff/${s.id}`}
-                        className="flex items-center gap-2.5"
-                      >
-                        <AvatarCircle name={s.name} size={30} />
-                        <div>
-                          <div className="text-[13px] font-medium hover:underline">
-                            {s.name}
+                rows.map((s) => {
+                  const avail = availabilityByStaff.get(s.id) ?? noAvailability
+                  return (
+                    <TableRow key={s.id}>
+                      <TableCell>
+                        <Link
+                          href={`/staff/${s.id}`}
+                          className="flex items-center gap-2.5"
+                        >
+                          <AvatarCircle name={s.name} size={30} />
+                          <div>
+                            <div className="text-[13px] font-medium hover:underline">
+                              {s.name}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground">
+                              {s.email ?? t("emDash")}
+                            </div>
                           </div>
-                          <div className="text-[11px] text-muted-foreground">
-                            {s.email ?? t("emDash")}
-                          </div>
-                        </div>
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <RoleBadge role={s.role} label={tRoles(s.role)} />
-                    </TableCell>
-                    <TableCell className="text-center text-[13px] font-medium">
-                      {s.weeklyContractHours}t
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-center gap-0.5">
-                        {dayLabels.map((d, di) => {
-                          const on = fallbackAvail[di]
-                          return (
-                            <span
-                              key={di}
-                              className={cn(
-                                "flex size-5.5 items-center justify-center rounded text-[9px] font-semibold",
-                                on
-                                  ? "bg-primary/15 text-primary"
-                                  : "bg-muted text-muted-foreground"
-                              )}
-                            >
-                              {d}
-                            </span>
-                          )
-                        })}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "font-medium",
-                          s.active
-                            ? //TODO colors should be using variables
-                              "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300"
-                            : "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300"
-                        )}
-                      >
-                        {s.active ? t("status.active") : t("status.inactive")}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="size-7"
-                        asChild
-                      >
-                        <Link href={`/staff/${s.id}`}>
-                          <Pencil className="size-3.5" />
                         </Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <RoleBadge role={s.role} label={tRoles(s.role)} />
+                      </TableCell>
+                      <TableCell className="text-center text-[13px] font-medium">
+                        {s.weeklyContractHours}t
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-center gap-0.5">
+                          {dayLabels.map((d, di) => {
+                            const on = avail[di]
+                            return (
+                              <span
+                                key={di}
+                                className={cn(
+                                  "flex size-5.5 items-center justify-center rounded text-[9px] font-semibold",
+                                  on
+                                    ? "bg-primary/15 text-primary"
+                                    : "bg-muted text-muted-foreground"
+                                )}
+                              >
+                                {d}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "font-medium",
+                            s.active
+                              ? "border-success-border bg-success-muted text-success-foreground"
+                              : "border-destructive-border bg-destructive-muted text-destructive-foreground"
+                          )}
+                        >
+                          {s.active ? t("status.active") : t("status.inactive")}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="size-7"
+                          asChild
+                        >
+                          <Link href={`/staff/${s.id}`}>
+                            <Pencil className="size-3.5" />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               )}
             </TableBody>
           </Table>
