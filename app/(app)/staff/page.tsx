@@ -20,15 +20,21 @@ import {
 import { staff } from "@/drizzle/schema"
 import { db } from "@/lib/db"
 import { cn } from "@/lib/utils"
-//TODO: Daylabels should be
-const dayLabels = ["M", "T", "O", "T", "F"]
-const fallbackAvail: boolean[] = [true, true, true, true, true]
 
 export default async function StaffPage() {
   const rows = await db.select().from(staff).orderBy(staff.name)
   const t = await getTranslations("StaffPage")
   const tRoles = await getTranslations("Roles")
+  const tWeekdays = await getTranslations("Weekdays.Short")
 
+  const dayLabels = [
+    tWeekdays("m"),
+    tWeekdays("tu"),
+    tWeekdays("w"),
+    tWeekdays("tu"),
+    tWeekdays("f"),
+  ]
+  const fallbackAvail: boolean[] = [true, true, true, true, true]
   return (
     <>
       <PageHeader
@@ -37,7 +43,10 @@ export default async function StaffPage() {
       />
 
       <div className="flex shrink-0 items-center gap-3 border-b bg-card px-5 py-2.5">
-        <Input placeholder={t("search")} className="h-8 max-w-xs text-[13px]" />
+        <Input
+          placeholder={t("search staff")}
+          className="h-8 max-w-xs text-[13px]"
+        />
         <div className="flex-1" />
         <Button size="sm" asChild>
           <Link href="/staff/new">

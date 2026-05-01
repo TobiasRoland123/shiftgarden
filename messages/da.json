@@ -10,9 +10,11 @@
   },
   "StaffPage": {
     "title": "Personale",
+    "subtitle": "{count, plural, =0 {Ingen ansatte} one {# ansat} other {# ansatte}}",
     "newStaff": "Nyt personale",
     "empty": "Ingen personale endnu. Klik på “Nyt personale” for at tilføje.",
     "emDash": "—",
+    "search staff": "Søg personale",
     "status": {
       "active": "Aktiv",
       "inactive": "Inaktiv"
@@ -22,6 +24,7 @@
       "role": "Rolle",
       "email": "E-mail",
       "contractHours": "Kontrakt t/uge",
+      "availability": "Tilgængelighed",
       "status": "Status"
     }
   },
@@ -53,5 +56,34 @@
     "nameRequired": "Navn er påkrævet",
     "timeFormat": "Brug TT:MM",
     "endAfterStart": "Slut skal være efter start"
+  },
+  "Weekdays": {
+    "Full": {
+      "monday": "Mandag",
+      "tuesday": "Tirsdag",
+      "wednesday": "Onsdag",
+      "thursday": "Torsdag",
+      "friday": "Fredag",
+      "saturday": "Lørdag",
+      "sunday": "Søndag"
+    },
+    "Mid": {
+      "mon": "Man",
+      "tue": "Tir",
+      "wed": "Ons",
+      "thu": "Tor",
+      "fri": "Fre",
+      "sat": "Lør",
+      "sun": "Søn"
+    },
+    "Short": {
+      "m": "M",
+      "tu": "T",
+      "w": "O",
+      "th": "T",
+      "f": "F",
+      "sa": "L",
+      "su": "S"
+    }
   }
 }
