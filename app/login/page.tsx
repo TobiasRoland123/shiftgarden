@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-import { LoginForm } from "@/app/login/_components/login-form"
+import { LoginForm } from "@/components/login-form"
 import {
   Card,
   CardContent,

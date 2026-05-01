@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm"
 import { notFound } from "next/navigation"
 
-import { AvailabilityEditor } from "@/app/(app)/staff/_components/availability-editor"
-import { StaffForm } from "@/app/(app)/staff/_components/staff-form"
+import { AvailabilityEditor } from "@/components/availability-editor"
+import { StaffForm } from "@/components/staff-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { staff, staffAvailability } from "@/drizzle/schema"
 import { db } from "@/lib/db"

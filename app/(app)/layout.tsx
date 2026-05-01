@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/app/(app)/_components/app-sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
 import {
   SidebarInset,
   SidebarProvider,
