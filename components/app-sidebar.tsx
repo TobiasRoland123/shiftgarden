@@ -27,9 +27,9 @@ import {
 
 const nav = [
   { href: "/", labelKey: "dashboard", icon: LayoutDashboard },
+  { href: "/plan", labelKey: "plan", icon: CalendarDays },
   { href: "/staff", labelKey: "staff", icon: Users },
   { href: "/groups", labelKey: "groups", icon: UsersRound },
-  { href: "/plan", labelKey: "plan", icon: CalendarDays },
   { href: "/absences", labelKey: "absences", icon: Palmtree },
 ] as const
 
