@@ -1,9 +1,14 @@
 import {
   boolean,
+  date,
+  index,
   integer,
+  jsonb,
+  pgEnum,
   pgTable,
   primaryKey,
   text,
+  time,
   timestamp,
 } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
@@ -77,3 +82,107 @@ export const authenticators = pgTable(
   },
   (a) => [primaryKey({ columns: [a.userId, a.credentialID] })]
 )
+
+// --- Domain enums ---
+
+export const roleEnum = pgEnum("role", ["pedagogue", "assistant", "substitute"])
+export const shiftSourceEnum = pgEnum("shift_source", ["auto", "manual"])
+export const absenceTypeEnum = pgEnum("absence_type", [
+  "sick",
+  "vacation",
+  "other",
+])
+
+// --- Domain tables ---
+
+export const staff = pgTable("staff", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  email: text("email").unique(),
+  role: roleEnum("role").notNull(),
+  weeklyContractHours: integer("weekly_contract_hours").notNull(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+})
+
+// weekday: 0 = Monday … 6 = Sunday (matches date-fns-tz `getISODay() - 1`).
+export const staffAvailability = pgTable(
+  "staff_availability",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    staffId: text("staff_id")
+      .notNull()
+      .references(() => staff.id, { onDelete: "cascade" }),
+    weekday: integer("weekday").notNull(),
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+  },
+  (t) => [index("staff_availability_staff_id_idx").on(t.staffId)]
+)
+
+export const groups = pgTable("groups", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  openTime: time("open_time").notNull(),
+  closeTime: time("close_time").notNull(),
+  expectedChildren: jsonb("expected_children").notNull(),
+})
+
+export const staffingRules = pgTable("staffing_rules", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  groupId: text("group_id")
+    .notNull()
+    .references(() => groups.id, { onDelete: "cascade" }),
+  startTime: time("start_time").notNull(),
+  endTime: time("end_time").notNull(),
+  minStaff: integer("min_staff").notNull(),
+  minPedagoger: integer("min_pedagoger").notNull(),
+})
+
+export const shifts = pgTable("shifts", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  staffId: text("staff_id")
+    .notNull()
+    .references(() => staff.id, { onDelete: "cascade" }),
+  groupId: text("group_id")
+    .notNull()
+    .references(() => groups.id, { onDelete: "cascade" }),
+  date: date("date").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+  source: shiftSourceEnum("source").notNull(),
+})
+
+export const absences = pgTable("absences", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  staffId: text("staff_id")
+    .notNull()
+    .references(() => staff.id, { onDelete: "cascade" }),
+  date: date("date").notNull(),
+  type: absenceTypeEnum("type").notNull(),
+})
+
+export const planRuns = pgTable("plan_runs", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  params: jsonb("params"),
+  score: integer("score"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+})
