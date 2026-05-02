@@ -47,7 +47,7 @@ export default async function StaffPage() {
     tWeekdays("m"),
     tWeekdays("tu"),
     tWeekdays("w"),
-    tWeekdays("tu"),
+    tWeekdays("th"),
     tWeekdays("f"),
   ]
   const noAvailability: boolean[] = [false, false, false, false, false]
