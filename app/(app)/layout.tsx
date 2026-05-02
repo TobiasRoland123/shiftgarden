@@ -13,7 +13,9 @@ export default async function AppLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="flex h-svh flex-col overflow-hidden">
-        {children}
+        <div className="flex-1 p-4">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )
