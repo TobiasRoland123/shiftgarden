@@ -15,7 +15,8 @@
     "db:studio": "drizzle-kit studio",
     "seed": "tsx scripts/seed.ts",
     "test": "vitest",
-    "prepare": "husky"
+    "prepare": "husky",
+    "ci": "pnpm db:migrate && pnpm build"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
