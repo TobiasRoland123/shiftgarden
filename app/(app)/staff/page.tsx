@@ -130,7 +130,7 @@ export default async function StaffPage() {
                         <RoleBadge role={s.role} label={tRoles(s.role)} />
                       </TableCell>
                       <TableCell className="text-center text-[13px] font-medium">
-                        {s.weeklyContractHours}t
+                        {s.weeklyContractHours}
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-center gap-0.5">
