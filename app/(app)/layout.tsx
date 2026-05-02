@@ -16,11 +16,11 @@ export default async function AppLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-12 items-center gap-2 border-b px-3">
+      <SidebarInset className="flex h-svh flex-col overflow-hidden">
+        <header className="flex h-10 shrink-0 items-center gap-2 border-b px-3">
           <SidebarTrigger />
         </header>
-        <div className="flex-1 p-6">{children}</div>
+        {children}
       </SidebarInset>
     </SidebarProvider>
   )
