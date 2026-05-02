@@ -1,0 +1,140 @@
+name: Preview – database branch
+
+# Runs on every PR push. Creates a fresh Neon branch from main (copy-on-write,
+# so it starts with production's schema + data), applies any pending migrations,
+# and wires the resulting DATABASE_URL into the Vercel preview deployment for
+# exactly this Git branch. Finishes by redeploying the Vercel preview so the
+# new env var takes effect immediately.
+#
+# Required GitHub secrets:
+#   NEON_API_KEY       – Neon API key (console.neon.tech → Account → API Keys)
+#   NEON_PROJECT_ID    – Neon project ID (Settings → General)
+#   VERCEL_TOKEN       – Vercel personal access token (vercel.com → Settings → Tokens)
+#   VERCEL_ORG_ID      – Vercel team/account ID (vercel.com → Settings → General → Team ID)
+#   VERCEL_PROJECT_ID  – Vercel project ID (project → Settings → General → Project ID)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  db-branch:
+    name: Branch from main & migrate
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      # Delete any existing preview branch for this PR and create a fresh one
+      # from the default (main) branch. Neon branches are copy-on-write, so the
+      # new branch instantly has all of main's current data without a full copy.
+      - name: Reset Neon branch for this PR
+        id: neon
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+          BRANCH_NAME: preview/pr-${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          EXISTING=$(curl -sf \
+            -H "Authorization: Bearer $NEON_API_KEY" \
+            "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
+            | jq -r --arg n "$BRANCH_NAME" '.branches[] | select(.name==$n) | .id // empty')
+
+          if [ -n "$EXISTING" ]; then
+            curl -sf -X DELETE \
+              -H "Authorization: Bearer $NEON_API_KEY" \
+              "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches/$EXISTING"
+            echo "Deleted existing branch $EXISTING"
+          fi
+
+          RESP=$(curl -sf -X POST \
+            -H "Authorization: Bearer $NEON_API_KEY" \
+            -H "Content-Type: application/json" \
+            "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
+            -d "{\"branch\":{\"name\":\"$BRANCH_NAME\"},\"endpoints\":[{\"type\":\"read_write\"}]}")
+
+          DB_URL=$(echo "$RESP" | jq -r '.connection_uris[0].connection_uri')
+          echo "db_url=$DB_URL" >> "$GITHUB_OUTPUT"
+          echo "Created Neon branch $BRANCH_NAME"
+
+      - name: Apply migrations
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: ${{ steps.neon.outputs.db_url }}
+
+      # Create (or replace) a branch-scoped DATABASE_URL env var in Vercel.
+      # The gitBranch scope means it only applies to preview deployments from
+      # this PR's head branch – all other previews and production are unaffected.
+      - name: Pin DATABASE_URL for this branch in Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          DB_URL: ${{ steps.neon.outputs.db_url }}
+          GIT_BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+
+          TEAM_Q="?teamId=$VERCEL_ORG_ID"
+          BASE="https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID"
+
+          # Remove any existing branch-scoped DATABASE_URL (idempotent on re-runs)
+          IDS=$(curl -sf \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "$BASE/env$TEAM_Q" \
+            | jq -r --arg b "$GIT_BRANCH" \
+              '.envs[] | select(.key=="DATABASE_URL" and .gitBranch==$b) | .id')
+
+          for id in $IDS; do
+            curl -sf -X DELETE \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "$BASE/env/$id$TEAM_Q"
+          done
+
+          curl -sf -X POST \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            "$BASE/env$TEAM_Q" \
+            -d "$(jq -n \
+              --arg v "$DB_URL" \
+              --arg b "$GIT_BRANCH" \
+              '{key:"DATABASE_URL",value:$v,type:"encrypted",target:["preview"],gitBranch:$b}')"
+
+          echo "Set DATABASE_URL for Vercel preview of $GIT_BRANCH"
+
+      # Redeploy the latest Vercel preview for this branch so the updated env
+      # var takes effect without waiting for the next code push.
+      - name: Redeploy Vercel preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          GIT_BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+
+          DEP=$(curl -sf \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&teamId=$VERCEL_ORG_ID&limit=10" \
+            | jq -r --arg b "$GIT_BRANCH" \
+              '[.deployments[] | select(.meta.githubCommitRef==$b)] | first | .uid // empty')
+
+          if [ -n "$DEP" ]; then
+            curl -sf -X POST \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              -H "Content-Type: application/json" \
+              "https://api.vercel.com/v13/deployments?forceNew=1&teamId=$VERCEL_ORG_ID" \
+              -d "$(jq -n --arg id "$DEP" '{deploymentId:$id}')" > /dev/null
+            echo "Triggered redeploy of $DEP"
+          else
+            echo "No existing deployment for $GIT_BRANCH – env var will apply on first Vercel build"
+          fi

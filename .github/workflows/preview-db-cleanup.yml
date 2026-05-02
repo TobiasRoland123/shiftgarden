@@ -1,0 +1,63 @@
+name: Preview – delete database branch
+
+# Runs when a PR is closed (merged or abandoned). Deletes the Neon branch and
+# removes the branch-scoped DATABASE_URL override from the Vercel project.
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  cleanup:
+    name: Delete Neon branch & Vercel env override
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete Neon branch
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+          BRANCH_NAME: preview/pr-${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          BRANCH_ID=$(curl -sf \
+            -H "Authorization: Bearer $NEON_API_KEY" \
+            "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
+            | jq -r --arg n "$BRANCH_NAME" '.branches[] | select(.name==$n) | .id // empty')
+
+          if [ -n "$BRANCH_ID" ]; then
+            curl -sf -X DELETE \
+              -H "Authorization: Bearer $NEON_API_KEY" \
+              "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID"
+            echo "Deleted Neon branch $BRANCH_NAME ($BRANCH_ID)"
+          else
+            echo "Branch $BRANCH_NAME not found – nothing to delete"
+          fi
+
+      - name: Remove Vercel env var override for this branch
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          GIT_BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+
+          TEAM_Q="?teamId=$VERCEL_ORG_ID"
+          BASE="https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID"
+
+          IDS=$(curl -sf \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "$BASE/env$TEAM_Q" \
+            | jq -r --arg b "$GIT_BRANCH" \
+              '.envs[] | select(.key=="DATABASE_URL" and .gitBranch==$b) | .id')
+
+          for id in $IDS; do
+            curl -sf -X DELETE \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "$BASE/env/$id$TEAM_Q"
+            echo "Deleted Vercel env var $id"
+          done
+
+          echo "Cleaned up Vercel env overrides for $GIT_BRANCH"
