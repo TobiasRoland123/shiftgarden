@@ -1,5 +1,9 @@
 import { AppSidebar } from "@/components/app-sidebar"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
 import { requireAuth } from "@/lib/auth-guard"
 
 export default async function AppLayout({
@@ -13,9 +17,10 @@ export default async function AppLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="flex h-svh flex-col overflow-hidden">
-        <div className="flex-1 p-4">
-          {children}
-        </div>
+        <header className="flex h-10 shrink-0 items-center gap-2 border-b px-3">
+          <SidebarTrigger />
+        </header>
+        {children}
       </SidebarInset>
     </SidebarProvider>
   )
