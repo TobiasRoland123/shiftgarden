@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -8,11 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { AvailabilityWindow } from "@/lib/validation/staff"
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const
+const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri"] as const
 
 type Props = {
   staffId: string
   initial: AvailabilityWindow[]
+  weeklyContractHours: number
 }
 
 function normalizeTime(t: string) {
@@ -20,7 +22,22 @@ function normalizeTime(t: string) {
   return t.length >= 5 ? t.slice(0, 5) : t
 }
 
-export function AvailabilityEditor({ staffId, initial }: Props) {
+function minutesFromTime(t: string) {
+  const [hours, minutes] = normalizeTime(t).split(":").map(Number)
+  return hours * 60 + minutes
+}
+
+function formatHours(minutes: number) {
+  const hours = minutes / 60
+  return Number.isInteger(hours) ? `${hours}` : `${hours.toFixed(1)}`
+}
+
+export function AvailabilityEditor({
+  staffId,
+  initial,
+  weeklyContractHours,
+}: Props) {
+  const t = useTranslations("AvailabilityEditor")
   const [windows, setWindows] = useState<AvailabilityWindow[]>(() =>
     initial.map((w) => ({
       weekday: w.weekday,
@@ -29,6 +46,12 @@ export function AvailabilityEditor({ staffId, initial }: Props) {
     }))
   )
   const [saving, setSaving] = useState(false)
+  const availableMinutes = windows.reduce((total, w) => {
+    if (!w.startTime || !w.endTime || w.startTime >= w.endTime) return total
+    return total + minutesFromTime(w.endTime) - minutesFromTime(w.startTime)
+  }, 0)
+  const contractMinutes = weeklyContractHours * 60
+  const hasAvailabilityWarning = availableMinutes < contractMinutes
 
   function update(idx: number, patch: Partial<AvailabilityWindow>) {
     setWindows((ws) => ws.map((w, i) => (i === idx ? { ...w, ...patch } : w)))
@@ -49,10 +72,10 @@ export function AvailabilityEditor({ staffId, initial }: Props) {
     setSaving(true)
     try {
       await setAvailability({ staffId, windows })
-      toast.success("Availability saved")
+      toast.success(t("toasts.saved"))
     } catch (err) {
       console.error(err)
-      toast.error("Save failed")
+      toast.error(t("toasts.saveFailed"))
     } finally {
       setSaving(false)
     }
@@ -61,7 +84,7 @@ export function AvailabilityEditor({ staffId, initial }: Props) {
   return (
     <div className="grid gap-4">
       <div className="grid gap-3">
-        {WEEKDAYS.map((label, weekday) => {
+        {WEEKDAYS.map((dayKey, weekday) => {
           const dayWindows = windows
             .map((w, idx) => ({ w, idx }))
             .filter(({ w }) => w.weekday === weekday)
@@ -70,11 +93,11 @@ export function AvailabilityEditor({ staffId, initial }: Props) {
               key={weekday}
               className="grid grid-cols-[4rem_1fr_auto] items-start gap-3 border-b pb-3 last:border-b-0"
             >
-              <div className="pt-2 font-medium">{label}</div>
+              <div className="pt-2 font-medium">{t(`weekdays.${dayKey}`)}</div>
               <div className="grid gap-2">
                 {dayWindows.length === 0 ? (
                   <div className="pt-2 text-sm text-muted-foreground">
-                    Unavailable
+                    {t("unavailable")}
                   </div>
                 ) : (
                   dayWindows.map(({ w, idx }) => (
@@ -114,15 +137,23 @@ export function AvailabilityEditor({ staffId, initial }: Props) {
                 size="sm"
                 onClick={() => addWindow(weekday)}
               >
-                + window
+                {t("buttons.addWindow")}
               </Button>
             </div>
           )
         })}
       </div>
+      {hasAvailabilityWarning ? (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          {t("warnings.availabilityBelowEmployment", {
+            availableHours: formatHours(availableMinutes),
+            employmentHours: formatHours(contractMinutes),
+          })}
+        </div>
+      ) : null}
       <div>
         <Button onClick={save} disabled={saving}>
-          {saving ? "Saving…" : "Save availability"}
+          {saving ? t("buttons.saving") : t("buttons.save")}
         </Button>
       </div>
     </div>
