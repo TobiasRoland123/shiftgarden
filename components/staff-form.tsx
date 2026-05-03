@@ -76,6 +76,7 @@ export function StaffForm({ mode, staffId, initial }: Props) {
       } else if (staffId) {
         await updateStaff(staffId, values)
         toast.success(t("toasts.saved"))
+        form.reset(values)
         router.refresh()
       }
     } catch (err) {
@@ -190,7 +191,7 @@ export function StaffForm({ mode, staffId, initial }: Props) {
           )}
         />
         <div>
-          <Button type="submit" disabled={submitting}>
+          <Button type="submit" disabled={submitting || (mode === "edit" && !form.formState.isDirty)}>
             {submitting
               ? t("buttons.saving")
               : mode === "create"

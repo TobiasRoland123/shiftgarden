@@ -45,7 +45,15 @@ export function AvailabilityEditor({
       endTime: normalizeTime(w.endTime),
     }))
   )
+  const [savedWindows, setSavedWindows] = useState<AvailabilityWindow[]>(() =>
+    initial.map((w) => ({
+      weekday: w.weekday,
+      startTime: normalizeTime(w.startTime),
+      endTime: normalizeTime(w.endTime),
+    }))
+  )
   const [saving, setSaving] = useState(false)
+  const hasChanges = JSON.stringify(windows) !== JSON.stringify(savedWindows)
   const availableMinutes = windows.reduce((total, w) => {
     if (!w.startTime || !w.endTime || w.startTime >= w.endTime) return total
     return total + minutesFromTime(w.endTime) - minutesFromTime(w.startTime)
@@ -72,6 +80,7 @@ export function AvailabilityEditor({
     setSaving(true)
     try {
       await setAvailability({ staffId, windows })
+      setSavedWindows(windows)
       toast.success(t("toasts.saved"))
     } catch (err) {
       console.error(err)
@@ -152,7 +161,7 @@ export function AvailabilityEditor({
         </div>
       ) : null}
       <div>
-        <Button onClick={save} disabled={saving}>
+        <Button onClick={save} disabled={saving || !hasChanges}>
           {saving ? t("buttons.saving") : t("buttons.save")}
         </Button>
       </div>
