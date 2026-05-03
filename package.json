@@ -16,7 +16,7 @@
     "seed": "tsx scripts/seed.ts",
     "test": "vitest",
     "prepare": "husky",
-    "ci": "pnpm db:migrate && pnpm seed && pnpm build"
+    "ci": "pnpm db:migrate && pnpm build"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

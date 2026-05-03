@@ -54,7 +54,7 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={active}>
-                      <Link href={item.href}>
+                      <Link href={item.href} prefetch>
                         <item.icon />
                         <span>{t(item.labelKey)}</span>
                       </Link>
