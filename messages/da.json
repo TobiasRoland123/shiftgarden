@@ -47,6 +47,36 @@
       "saveFailed": "Kunne ikke gemme"
     }
   },
+  "StaffDetailPage": {
+    "details": "Detaljer",
+    "weeklyAvailability": "Ugentlig tilgængelighed"
+  },
+  "AvailabilityEditor": {
+    "weekdays": {
+      "mon": "Man",
+      "tue": "Tir",
+      "wed": "Ons",
+      "thu": "Tor",
+      "fri": "Fre"
+    },
+    "unavailable": "Ikke tilgængelig",
+    "buttons": {
+      "addWindow": "+ tidsrum",
+      "save": "Gem tilgængelighed",
+      "saving": "Gemmer…"
+    },
+    "toasts": {
+      "saved": "Tilgængelighed gemt",
+      "saveFailed": "Kunne ikke gemme tilgængelighed"
+    },
+    "warnings": {
+      "availabilityBelowEmployment": "Tilgængelige timer er {availableHours}t, hvilket er mindre end ansættelsestimerne på {employmentHours}t."
+    },
+    "units": {
+      "hours": "t",
+      "minutes": "min"
+    }
+  },
   "Roles": {
     "pedagogue": "Pædagog",
     "assistant": "Medhjælper",

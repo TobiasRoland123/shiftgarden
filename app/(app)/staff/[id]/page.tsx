@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm"
+import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 
 import { AvailabilityEditor } from "@/components/availability-editor"
@@ -13,6 +14,7 @@ export default async function EditStaffPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  const t = await getTranslations("StaffDetailPage")
   const [row] = await db.select().from(staff).where(eq(staff.id, id)).limit(1)
   if (!row) notFound()
 
@@ -31,7 +33,7 @@ export default async function EditStaffPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Details</CardTitle>
+          <CardTitle>{t("details")}</CardTitle>
         </CardHeader>
         <CardContent>
           <StaffForm
@@ -50,10 +52,14 @@ export default async function EditStaffPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Weekly availability</CardTitle>
+          <CardTitle>{t("weeklyAvailability")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <AvailabilityEditor staffId={id} initial={windows} />
+          <AvailabilityEditor
+            staffId={id}
+            initial={windows}
+            weeklyContractHours={row.weeklyContractHours}
+          />
         </CardContent>
       </Card>
     </div>
