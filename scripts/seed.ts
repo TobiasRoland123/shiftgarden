@@ -16,7 +16,7 @@ type SeedStaff = {
   name: string
   email: string
   role: Role
-  weeklyContractHours: number
+  weeklyMaxHours: number
   active: boolean
   availability: SeedWindow[]
 }
@@ -34,7 +34,7 @@ const dummyStaff: SeedStaff[] = [
     name: "Astrid Sørensen",
     email: "astrid@shiftgarden.dev",
     role: "pedagogue",
-    weeklyContractHours: 37,
+    weeklyMaxHours: 37,
     active: true,
     availability: weekdays.map((d) => win(d, "06:30", "14:30")),
   },
@@ -42,7 +42,7 @@ const dummyStaff: SeedStaff[] = [
     name: "Bjørn Kristiansen",
     email: "bjorn@shiftgarden.dev",
     role: "pedagogue",
-    weeklyContractHours: 37,
+    weeklyMaxHours: 37,
     active: true,
     availability: weekdays.map((d) => win(d, "09:00", "17:00")),
   },
@@ -50,7 +50,7 @@ const dummyStaff: SeedStaff[] = [
     name: "Camilla Holm",
     email: "camilla@shiftgarden.dev",
     role: "pedagogue",
-    weeklyContractHours: 32,
+    weeklyMaxHours: 32,
     active: true,
     availability: [
       win(0, "08:00", "12:00"),
@@ -64,7 +64,7 @@ const dummyStaff: SeedStaff[] = [
     name: "Dorthe Mikkelsen",
     email: "dorthe@shiftgarden.dev",
     role: "assistant",
-    weeklyContractHours: 30,
+    weeklyMaxHours: 30,
     active: true,
     availability: weekdays.map((d) => win(d, "07:00", "13:00")),
   },
@@ -72,7 +72,7 @@ const dummyStaff: SeedStaff[] = [
     name: "Emil Jakobsen",
     email: "emil@shiftgarden.dev",
     role: "assistant",
-    weeklyContractHours: 32,
+    weeklyMaxHours: 32,
     active: true,
     availability: weekdays.map((d) => win(d, "10:00", "17:00")),
   },
@@ -80,7 +80,7 @@ const dummyStaff: SeedStaff[] = [
     name: "Frederikke Vinther",
     email: "frederikke@shiftgarden.dev",
     role: "assistant",
-    weeklyContractHours: 20,
+    weeklyMaxHours: 20,
     active: true,
     availability: [
       win(1, "08:00", "13:00"),
@@ -92,7 +92,7 @@ const dummyStaff: SeedStaff[] = [
     name: "Gunnar Larsen",
     email: "gunnar@shiftgarden.dev",
     role: "substitute",
-    weeklyContractHours: 0,
+    weeklyMaxHours: 0,
     active: true,
     availability: weekdays.map((d) => win(d, "06:30", "17:00")),
   },
@@ -100,7 +100,7 @@ const dummyStaff: SeedStaff[] = [
     name: "Helle Brandt",
     email: "helle@shiftgarden.dev",
     role: "substitute",
-    weeklyContractHours: 0,
+    weeklyMaxHours: 0,
     active: false,
     availability: [win(2, "08:00", "16:00"), win(4, "08:00", "16:00")],
   },
@@ -137,7 +137,7 @@ async function main() {
         name: s.name,
         email: s.email,
         role: s.role,
-        weeklyContractHours: s.weeklyContractHours,
+        weeklyMaxHours: s.weeklyMaxHours,
         active: s.active,
       })
       .onConflictDoUpdate({
@@ -145,7 +145,7 @@ async function main() {
         set: {
           name: s.name,
           role: s.role,
-          weeklyContractHours: s.weeklyContractHours,
+          weeklyMaxHours: s.weeklyMaxHours,
           active: s.active,
         },
       })

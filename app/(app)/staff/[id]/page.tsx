@@ -43,7 +43,7 @@ export default async function EditStaffPage({
               name: row.name,
               email: row.email ?? "",
               role: row.role,
-              weeklyContractHours: row.weeklyContractHours,
+              weeklyMaxHours: row.weeklyMaxHours,
               active: row.active,
             }}
           />
@@ -58,7 +58,7 @@ export default async function EditStaffPage({
           <AvailabilityEditor
             staffId={id}
             initial={windows}
-            weeklyContractHours={row.weeklyContractHours}
+            weeklyMaxHours={row.weeklyMaxHours}
           />
         </CardContent>
       </Card>

@@ -23,7 +23,7 @@ export const staffInputSchema = z.object({
   name: z.string().min(1, "Validation.nameRequired"),
   email: z.union([z.email(), z.literal("")]),
   role: roleSchema,
-  weeklyContractHours: z.number().int().min(0).max(60),
+  weeklyMaxHours: z.number().int().min(0).max(60),
   active: z.boolean(),
 })
 

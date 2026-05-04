@@ -84,7 +84,7 @@ export default async function StaffPage() {
                   {t("columns.role")}
                 </TableHead>
                 <TableHead className="text-center text-[11px] tracking-wider uppercase">
-                  {t("columns.contractHours")}
+                  {t("columns.maxHours")}
                 </TableHead>
                 <TableHead className="text-center text-[11px] tracking-wider uppercase">
                   {t("columns.availability")}
@@ -130,7 +130,7 @@ export default async function StaffPage() {
                         <RoleBadge role={s.role} label={tRoles(s.role)} />
                       </TableCell>
                       <TableCell className="text-center text-[13px] font-medium">
-                        {s.weeklyContractHours}
+                        {s.weeklyMaxHours}
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-center gap-0.5">

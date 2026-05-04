@@ -22,7 +22,7 @@ export async function createStaff(input: StaffInput) {
       name: data.name,
       email: data.email ? data.email : null,
       role: data.role,
-      weeklyContractHours: data.weeklyContractHours,
+      weeklyMaxHours: data.weeklyMaxHours,
       active: data.active,
     })
     .returning({ id: staff.id })
@@ -39,7 +39,7 @@ export async function updateStaff(id: string, input: StaffInput) {
       name: data.name,
       email: data.email ? data.email : null,
       role: data.role,
-      weeklyContractHours: data.weeklyContractHours,
+      weeklyMaxHours: data.weeklyMaxHours,
       active: data.active,
     })
     .where(eq(staff.id, id))
