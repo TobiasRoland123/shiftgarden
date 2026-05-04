@@ -21,7 +21,7 @@ function shift(
 }
 
 describe("evaluateCoverage", () => {
-  it("returns green when staff and pedagog requirements are met", () => {
+  it("returns green when staff and pedagogues requirements are met", () => {
     const input: CoverageInput = {
       weekday: 0, // Monday
       group,
@@ -31,7 +31,7 @@ describe("evaluateCoverage", () => {
           startTime: "08:00",
           endTime: "17:00",
           minStaff: 2,
-          minPedagoger: 1,
+          minPedagogues: 1,
         },
       ],
       shifts: [
@@ -44,7 +44,7 @@ describe("evaluateCoverage", () => {
     expect(result.shortfalls).toEqual([])
   })
 
-  it("returns yellow when only the pedagog mix is short", () => {
+  it("returns yellow when only the pedagogues mix is short", () => {
     const input: CoverageInput = {
       weekday: 0,
       group,
@@ -54,7 +54,7 @@ describe("evaluateCoverage", () => {
           startTime: "08:00",
           endTime: "17:00",
           minStaff: 2,
-          minPedagoger: 1,
+          minPedagogues: 1,
         },
       ],
       shifts: [
@@ -66,7 +66,7 @@ describe("evaluateCoverage", () => {
     expect(result.status).toBe("yellow")
     expect(result.shortfalls).toHaveLength(1)
     expect(result.shortfalls[0]).toMatchObject({
-      kind: "pedagoger",
+      kind: "pedagogues",
       startMinute: hhmmToMinutes("08:00"),
       endMinute: hhmmToMinutes("17:00"),
       required: 1,
@@ -74,7 +74,7 @@ describe("evaluateCoverage", () => {
     })
   })
 
-  it("returns red when staff is short, regardless of pedagog mix", () => {
+  it("returns red when staff is short, regardless of pedagogues mix", () => {
     const input: CoverageInput = {
       weekday: 0,
       group,
@@ -84,7 +84,7 @@ describe("evaluateCoverage", () => {
           startTime: "08:00",
           endTime: "17:00",
           minStaff: 2,
-          minPedagoger: 1,
+          minPedagogues: 1,
         },
       ],
       shifts: [shift("08:00", "17:00", "assistant")],
@@ -104,14 +104,14 @@ describe("evaluateCoverage", () => {
           startTime: "08:00",
           endTime: "12:00",
           minStaff: 1,
-          minPedagoger: 0,
+          minPedagogues: 0,
         },
         {
           weekday: 0,
           startTime: "13:00",
           endTime: "17:00",
           minStaff: 1,
-          minPedagoger: 0,
+          minPedagogues: 0,
         },
       ],
       shifts: [
@@ -134,7 +134,7 @@ describe("evaluateCoverage", () => {
           startTime: "08:00",
           endTime: "17:00",
           minStaff: 2,
-          minPedagoger: 1,
+          minPedagogues: 1,
         },
       ],
       shifts: [],

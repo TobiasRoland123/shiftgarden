@@ -120,7 +120,7 @@
       "from": "Fra",
       "to": "Til",
       "minStaff": "Min. personale",
-      "minPedagoger": "Min. pædagoger"
+      "minPedagogues": "Min. pædagoger"
     },
     "buttons": {
       "addRule": "+ regel",

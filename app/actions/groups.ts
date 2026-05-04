@@ -105,7 +105,7 @@ export async function createStaffingRule(input: StaffingRuleInput) {
       startTime: data.startTime,
       endTime: data.endTime,
       minStaff: data.minStaff,
-      minPedagoger: data.minPedagoger,
+      minPedagogues: data.minPedagogues,
       templateId: data.templateId,
     })
     .returning({ id: staffingRules.id })
@@ -130,7 +130,7 @@ export async function updateStaffingRule(id: string, input: StaffingRuleInput) {
       startTime: data.startTime,
       endTime: data.endTime,
       minStaff: data.minStaff,
-      minPedagoger: data.minPedagoger,
+      minPedagogues: data.minPedagogues,
     })
     .where(
       and(eq(staffingRules.id, id), eq(staffingRules.groupId, data.groupId))
@@ -174,7 +174,7 @@ export async function copyStaffingRulesToDays(
           startTime: rule.startTime,
           endTime: rule.endTime,
           minStaff: rule.minStaff,
-          minPedagoger: rule.minPedagoger,
+          minPedagogues: rule.minPedagogues,
           templateId: rule.templateId,
         })
         copied++
@@ -191,37 +191,21 @@ export async function copyStaffingRulesToDays(
 export async function createStaffingRuleForWholeWeek(input: StaffingRuleInput) {
   await requireAuth()
   const data = staffingRuleInputSchema.parse(input)
+  for (let weekday = 0; weekday < 7; weekday++) {
+    await assertNoOverlap(data.groupId, weekday, data.startTime, data.endTime)
+  }
   const templateId = crypto.randomUUID()
-  await db.transaction(async (tx) => {
-    for (let weekday = 0; weekday < 7; weekday++) {
-      const existing = await tx
-        .select()
-        .from(staffingRules)
-        .where(
-          and(
-            eq(staffingRules.groupId, data.groupId),
-            eq(staffingRules.weekday, weekday)
-          )
-        )
-      for (const row of existing) {
-        if (
-          timesOverlap(data.startTime, data.endTime, row.startTime, row.endTime)
-        )
-          throw new Error(`StaffingRule.overlap:${weekday}`)
-      }
-      await tx
-        .insert(staffingRules)
-        .values({
-          groupId: data.groupId,
-          weekday,
-          startTime: data.startTime,
-          endTime: data.endTime,
-          minStaff: data.minStaff,
-          minPedagoger: data.minPedagoger,
-          templateId,
-        })
-    }
-  })
+  for (let weekday = 0; weekday < 7; weekday++) {
+    await db.insert(staffingRules).values({
+      groupId: data.groupId,
+      weekday,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      minStaff: data.minStaff,
+      minPedagogues: data.minPedagogues,
+      templateId,
+    })
+  }
   revalidatePath(`/groups/${data.groupId}`)
 }
 
@@ -254,7 +238,7 @@ export async function updateStaffingRuleByTemplate(
         startTime: patch.startTime,
         endTime: patch.endTime,
         minStaff: patch.minStaff,
-        minPedagoger: patch.minPedagoger,
+        minPedagogues: patch.minPedagogues,
       })
       .where(eq(staffingRules.id, rule.id))
   }

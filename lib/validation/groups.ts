@@ -34,16 +34,16 @@ export const staffingRuleInputSchema = z
     startTime: timeStringSchema,
     endTime: timeStringSchema,
     minStaff: z.number().int().min(0).max(50),
-    minPedagoger: z.number().int().min(0).max(50),
+    minPedagogues: z.number().int().min(0).max(50),
     templateId: z.string().uuid().optional(),
   })
   .refine((r) => r.startTime < r.endTime, {
     message: "Validation.endAfterStart",
     path: ["endTime"],
   })
-  .refine((r) => r.minPedagoger <= r.minStaff, {
+  .refine((r) => r.minPedagogues <= r.minStaff, {
     message: "Validation.pedagogLeStaff",
-    path: ["minPedagoger"],
+    path: ["minPedagogues"],
   })
 
 export type GroupInput = z.infer<typeof groupInputSchema>

@@ -16,7 +16,7 @@ export default async function AppLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="flex h-svh flex-col overflow-hidden">
+      <SidebarInset className="flex h-svh flex-col">
         <header className="flex h-10 shrink-0 items-center gap-2 border-b px-3">
           <SidebarTrigger />
         </header>

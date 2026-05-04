@@ -151,7 +151,7 @@ export const staffingRules = pgTable(
     startTime: time("start_time").notNull(),
     endTime: time("end_time").notNull(),
     minStaff: integer("min_staff").notNull(),
-    minPedagoger: integer("min_pedagoger").notNull(),
+    minPedagogues: integer("min_pedagogues").notNull(),
     templateId: uuid("template_id"),
   },
   (t) => [index("staffing_rules_group_weekday_idx").on(t.groupId, t.weekday)]

@@ -7,7 +7,6 @@ import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import {
-  copyStaffingRulesToDays,
   createStaffingRule,
   createStaffingRuleForWholeWeek,
   deleteStaffingRule,
@@ -25,7 +24,7 @@ type Rule = {
   startTime: string
   endTime: string
   minStaff: number
-  minPedagoger: number
+  minPedagogues: number
   templateId: string | null
 }
 type Props = {
@@ -90,30 +89,41 @@ export function StaffingRulesEditor({
     router.refresh()
   }
 
-  async function onCreate(weekday: number) {
-    const d = draftByWeekday[weekday]
-    if (!d) return
+  async function onCreate(
+    weekday: number,
+    values: {
+      startTime: string
+      endTime: string
+      minStaff: number
+      minPedagogues: number
+    }
+  ) {
     setBusyId(`new-${weekday}`)
     try {
       if (uniformWeek)
         await createStaffingRuleForWholeWeek({
           groupId,
           weekday,
-          startTime: d.startTime,
-          endTime: d.endTime,
-          minStaff: d.minStaff,
-          minPedagoger: d.minPedagoger,
+          startTime: values.startTime,
+          endTime: values.endTime,
+          minStaff: values.minStaff,
+          minPedagogues: values.minPedagogues,
         })
       else
         await createStaffingRule({
           groupId,
           weekday,
-          startTime: d.startTime,
-          endTime: d.endTime,
-          minStaff: d.minStaff,
-          minPedagoger: d.minPedagoger,
+          startTime: values.startTime,
+          endTime: values.endTime,
+          minStaff: values.minStaff,
+          minPedagogues: values.minPedagogues,
         })
       toast.success(t("toasts.saved"))
+      setDraftByWeekday((p: any) => {
+        const n = { ...p }
+        delete n[weekday]
+        return n
+      })
       router.refresh()
     } catch {
       toast.error(t("toasts.saveFailed"))
@@ -140,10 +150,12 @@ export function StaffingRulesEditor({
           busyId={busyId}
           setBusyId={setBusyId}
           onCreate={onCreate}
+          draft={draftByWeekday[0]}
+          setDraftByWeekday={setDraftByWeekday}
           t={t}
         />
       ) : (
-        WEEKDAYS.map((d, weekday) => (
+        WEEKDAYS.slice(0, 5).map((d, weekday) => (
           <DayBlock
             key={weekday}
             weekday={weekday}
@@ -164,7 +176,16 @@ export function StaffingRulesEditor({
   )
 }
 
-function UniformView({ rules, groupId, busyId, setBusyId, onCreate, t }: any) {
+function UniformView({
+  rules,
+  groupId,
+  busyId,
+  setBusyId,
+  onCreate,
+  draft,
+  setDraftByWeekday,
+  t,
+}: any) {
   const templated = rules.filter((r: any) => r.templateId)
   const legacy = rules.filter((r: any) => !r.templateId)
   const uniq = [
@@ -172,6 +193,7 @@ function UniformView({ rules, groupId, busyId, setBusyId, onCreate, t }: any) {
   ]
   return (
     <div className="grid gap-2">
+      {(uniq.length > 0 || draft) && <RuleHeaders t={t} />}
       {uniq.map((rule: any) => (
         <RuleRow
           key={rule.templateId}
@@ -190,9 +212,28 @@ function UniformView({ rules, groupId, busyId, setBusyId, onCreate, t }: any) {
           t={t}
         />
       ))}
-      <Button size="sm" variant="outline" onClick={() => onCreate(0)}>
-        {t("buttons.addRule")}
-      </Button>
+      {draft ? (
+        <DraftRow
+          onSave={(values: any) => onCreate(0, values)}
+          onCancel={() =>
+            setDraftByWeekday((p: any) => {
+              const n = { ...p }
+              delete n[0]
+              return n
+            })
+          }
+          busy={busyId === "new-0"}
+          t={t}
+        />
+      ) : (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setDraftByWeekday((p: any) => ({ ...p, [0]: true }))}
+        >
+          {t("buttons.addRule")}
+        </Button>
+      )}
       {legacy.length > 0 ? (
         <div>
           <div>{t("uniform.legacyHeader")}</div>
@@ -226,14 +267,14 @@ function DayBlock({
   draft,
   setDraftByWeekday,
   busyId,
+  onCreate,
   groupId,
   t,
-  tW,
 }: any) {
-  const [targets, setTargets] = useState<number[]>([])
   return (
     <div className="grid gap-2">
       <div className="text-sm font-medium">{dayLabel}</div>
+      {(rules.length > 0 || draft) && <RuleHeaders t={t} />}
       {rules.map((r: any) => (
         <RuleRow
           key={r.id}
@@ -247,78 +288,97 @@ function DayBlock({
         />
       ))}
       {draft ? (
-        <div />
+        <DraftRow
+          onSave={(values: any) => onCreate(weekday, values)}
+          onCancel={() =>
+            setDraftByWeekday((p: any) => {
+              const n = { ...p }
+              delete n[weekday]
+              return n
+            })
+          }
+          busy={busyId === `new-${weekday}`}
+          t={t}
+        />
       ) : (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              setDraftByWeekday((p: any) => ({
-                ...p,
-                [weekday]: {
-                  startTime: "08:00",
-                  endTime: "16:00",
-                  minStaff: 1,
-                  minPedagoger: 1,
-                },
-              }))
-            }
-          >
-            {t("buttons.addRule")}
-          </Button>
-          {rules.length > 0 ? (
-            <details>
-              <summary className="cursor-pointer text-sm">
-                {t("buttons.copyToDays")}
-              </summary>
-              <div className="mt-2 grid gap-2">
-                {WEEKDAYS.map((d, i) =>
-                  i !== weekday ? (
-                    <label key={i}>
-                      <input
-                        type="checkbox"
-                        checked={targets.includes(i)}
-                        onChange={(e) =>
-                          setTargets((p) =>
-                            e.target.checked
-                              ? [...p, i]
-                              : p.filter((x) => x !== i)
-                          )
-                        }
-                      />{" "}
-                      {tW(d)}
-                    </label>
-                  ) : null
-                )}
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    const res = await copyStaffingRulesToDays(
-                      groupId,
-                      weekday,
-                      targets
-                    )
-                    if (res.conflicts.length === 0)
-                      toast.success(t("toasts.copied", { count: res.copied }))
-                    else
-                      toast.error(
-                        t("toasts.copiedPartial", {
-                          copied: res.copied,
-                          conflicts: res.conflicts
-                            .map((i: number) => tW(WEEKDAYS[i]))
-                            .join(", "),
-                        })
-                      )
-                  }}
-                >
-                  {t("buttons.copy")}
-                </Button>
-              </div>
-            </details>
-          ) : null}
-        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            setDraftByWeekday((p: any) => ({ ...p, [weekday]: true }))
+          }
+        >
+          {t("buttons.addRule")}
+        </Button>
       )}
+    </div>
+  )
+}
+
+function DraftRow({ onSave, onCancel, busy, t }: any) {
+  const [draft, setDraft] = useState({
+    startTime: "08:00",
+    endTime: "16:00",
+    minStaff: 1,
+    minPedagogues: 1,
+  })
+  return (
+    <div className="grid grid-cols-[1fr_1fr_1fr_1fr_auto_auto] items-center gap-2">
+      <Input
+        type="time"
+        value={draft.startTime}
+        onChange={(e) => setDraft((d) => ({ ...d, startTime: e.target.value }))}
+      />
+      <Input
+        type="time"
+        value={draft.endTime}
+        onChange={(e) => setDraft((d) => ({ ...d, endTime: e.target.value }))}
+      />
+      <Input
+        type="number"
+        value={draft.minStaff}
+        onChange={(e) =>
+          setDraft((d) => ({ ...d, minStaff: e.target.valueAsNumber || 0 }))
+        }
+      />
+      <Input
+        type="number"
+        value={draft.minPedagogues}
+        onChange={(e) =>
+          setDraft((d) => ({
+            ...d,
+            minPedagogues: e.target.valueAsNumber || 0,
+          }))
+        }
+      />
+      <Button
+        size="sm"
+        type="button"
+        onClick={() => onSave(draft)}
+        disabled={busy}
+      >
+        {t("buttons.save")}
+      </Button>
+      <Button size="sm" type="button" variant="ghost" onClick={onCancel}>
+        ×
+      </Button>
+    </div>
+  )
+}
+
+function RuleHeaders({ t }: any) {
+  return (
+    <div className="grid grid-cols-[1fr_1fr_1fr_1fr_auto_auto] items-center gap-2 px-1">
+      <span className="text-xs text-muted-foreground">{t("headers.from")}</span>
+      <span className="text-xs text-muted-foreground">{t("headers.to")}</span>
+      <span className="text-xs text-muted-foreground">
+        {t("headers.minStaff")}
+      </span>
+      <span className="text-xs text-muted-foreground">
+        {t("headers.minPedagogues")}
+      </span>
+      <span />
+      <span />
     </div>
   )
 }
@@ -328,7 +388,7 @@ function RuleRow({ rule, busy, onSave, onDelete, t }: any) {
     startTime: rule.startTime,
     endTime: rule.endTime,
     minStaff: rule.minStaff,
-    minPedagoger: rule.minPedagoger,
+    minPedagogues: rule.minPedagogues,
   })
   const dirty =
     JSON.stringify(draft) !==
@@ -336,7 +396,7 @@ function RuleRow({ rule, busy, onSave, onDelete, t }: any) {
       startTime: rule.startTime,
       endTime: rule.endTime,
       minStaff: rule.minStaff,
-      minPedagoger: rule.minPedagoger,
+      minPedagogues: rule.minPedagogues,
     })
   return (
     <div className="grid grid-cols-[1fr_1fr_1fr_1fr_auto_auto] items-center gap-2">
@@ -366,11 +426,11 @@ function RuleRow({ rule, busy, onSave, onDelete, t }: any) {
       />
       <Input
         type="number"
-        value={draft.minPedagoger}
+        value={draft.minPedagogues}
         onChange={(e) =>
           setDraft((d: any) => ({
             ...d,
-            minPedagoger: e.target.valueAsNumber || 0,
+            minPedagogues: e.target.valueAsNumber || 0,
           }))
         }
       />

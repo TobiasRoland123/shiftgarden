@@ -43,6 +43,13 @@
       "when": 1777902863431,
       "tag": "0005_workable_piledriver",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1746403200000,
+      "tag": "0006_rename_min_pedagoger_to_min_pedagogues",
+      "breakpoints": true
     }
   ]
 }

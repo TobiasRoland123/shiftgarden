@@ -4,7 +4,7 @@
 
 export type CoverageStatus = "green" | "yellow" | "red"
 
-export type ShortfallKind = "staff" | "pedagoger"
+export type ShortfallKind = "staff" | "pedagogues"
 
 export type Shortfall = {
   startMinute: number
@@ -19,7 +19,7 @@ export type CoverageRule = {
   startTime: string // "HH:mm" or "HH:mm:ss"
   endTime: string
   minStaff: number
-  minPedagoger: number
+  minPedagogues: number
 }
 
 export type CoverageShiftRole = "pedagogue" | "assistant" | "substitute"
@@ -66,7 +66,7 @@ export function evaluateCoverage(input: CoverageInput): CoverageResult {
       ruled[i] = 1
       // Non-overlap is enforced server-side, but use max() defensively.
       if (rule.minStaff > reqStaff[i]) reqStaff[i] = rule.minStaff
-      if (rule.minPedagoger > reqPed[i]) reqPed[i] = rule.minPedagoger
+      if (rule.minPedagogues > reqPed[i]) reqPed[i] = rule.minPedagogues
     }
   }
 
@@ -84,10 +84,10 @@ export function evaluateCoverage(input: CoverageInput): CoverageResult {
 
   const shortfalls: Shortfall[] = []
   appendShortfalls(shortfalls, "staff", open, span, ruled, reqStaff, actStaff)
-  appendShortfalls(shortfalls, "pedagoger", open, span, ruled, reqPed, actPed)
+  appendShortfalls(shortfalls, "pedagogues", open, span, ruled, reqPed, actPed)
 
   const hasStaff = shortfalls.some((s) => s.kind === "staff")
-  const hasPed = shortfalls.some((s) => s.kind === "pedagoger")
+  const hasPed = shortfalls.some((s) => s.kind === "pedagogues")
   const status: CoverageStatus = hasStaff ? "red" : hasPed ? "yellow" : "green"
   return { status, shortfalls }
 }
