@@ -7,6 +7,7 @@ import {
   pgEnum,
   pgTable,
   primaryKey,
+  real,
   text,
   time,
   timestamp,
@@ -87,6 +88,12 @@ export const authenticators = pgTable(
 
 export const roleEnum = pgEnum("role", ["pedagogue", "assistant", "substitute"])
 export const shiftSourceEnum = pgEnum("shift_source", ["ai", "manual"])
+export const planRunStatusEnum = pgEnum("plan_run_status", [
+  "pending",
+  "valid",
+  "invalid",
+  "failed",
+])
 export const absenceTypeEnum = pgEnum("absence_type", [
   "sick",
   "vacation",
@@ -149,6 +156,16 @@ export const staffingRules = pgTable("staffing_rules", {
   minPedagoger: integer("min_pedagoger").notNull(),
 })
 
+export const planningRules = pgTable("planning_rules", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  minPedagogueRatio: real("min_pedagogue_ratio").notNull(),
+  minStaffRatio: real("min_staff_ratio").notNull(),
+  breakMinutes: integer("break_minutes").notNull(),
+  breakThresholdHours: real("break_threshold_hours").notNull(),
+})
+
 export const shifts = pgTable("shifts", {
   id: text("id")
     .primaryKey()
@@ -163,6 +180,7 @@ export const shifts = pgTable("shifts", {
   startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
   endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
   source: shiftSourceEnum("source").notNull(),
+  isLocked: boolean("is_locked").notNull().default(false),
 })
 
 export const absences = pgTable("absences", {
@@ -172,7 +190,8 @@ export const absences = pgTable("absences", {
   staffId: text("staff_id")
     .notNull()
     .references(() => staff.id, { onDelete: "cascade" }),
-  date: date("date").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
   type: absenceTypeEnum("type").notNull(),
 })
 
@@ -180,8 +199,10 @@ export const planRuns = pgTable("plan_runs", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  params: jsonb("params"),
-  score: integer("score"),
+  status: planRunStatusEnum("status").notNull().default("pending"),
+  inputSnapshot: jsonb("input_snapshot"),
+  aiOutput: jsonb("ai_output"),
+  validationResult: jsonb("validation_result"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

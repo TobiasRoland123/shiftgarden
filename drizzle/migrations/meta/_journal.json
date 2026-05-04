@@ -29,6 +29,13 @@
       "when": 1777928954000,
       "tag": "0003_rename_shift_source_auto_to_ai",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777929250925,
+      "tag": "0004_flowery_northstar",
+      "breakpoints": true
     }
   ]
 }
