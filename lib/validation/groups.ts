@@ -20,6 +20,7 @@ export const groupInputSchema = z
     name: z.string().min(1, "Validation.nameRequired"),
     openTime: timeStringSchema,
     closeTime: timeStringSchema,
+    uniformWeek: z.boolean().default(false).optional(),
   })
   .refine((g) => g.openTime < g.closeTime, {
     message: "Validation.endAfterStart",
@@ -34,6 +35,7 @@ export const staffingRuleInputSchema = z
     endTime: timeStringSchema,
     minStaff: z.number().int().min(0).max(50),
     minPedagoger: z.number().int().min(0).max(50),
+    templateId: z.string().uuid().optional(),
   })
   .refine((r) => r.startTime < r.endTime, {
     message: "Validation.endAfterStart",

@@ -126,7 +126,10 @@
       "addRule": "+ regel",
       "save": "Gem",
       "saving": "Gemmer…",
-      "delete": "Slet"
+      "delete": "Slet",
+      "copyToDays": "Kopiér til dage",
+      "copy": "Kopiér",
+      "selectAll": "Vælg alle"
     },
     "empty": "Ingen regler",
     "toasts": {
@@ -134,7 +137,15 @@
       "deleted": "Regel slettet",
       "overlap": "Reglen overlapper med en anden regel på samme dag",
       "saveFailed": "Kunne ikke gemme regel",
-      "deleteFailed": "Kunne ikke slette regel"
+      "deleteFailed": "Kunne ikke slette regel",
+      "copied": "Kopierede {count} regler",
+      "copiedPartial": "Kopierede {copied} regler. Konflikter: {conflicts}",
+      "copyFailed": "Kunne ikke kopiere regler"
+    },
+    "uniform": {
+      "toggle": "Samme regler hver dag",
+      "disabledHint": "Kan kun aktiveres når alle regler allerede er ugentlige skabeloner",
+      "legacyHeader": "Ældre per-dag regler"
     }
   },
   "Roles": {

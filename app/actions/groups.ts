@@ -59,6 +59,7 @@ export async function createGroup(input: GroupInput) {
       name: data.name,
       openTime: data.openTime,
       closeTime: data.closeTime,
+      uniformWeek: data.uniformWeek ?? false,
     })
     .returning({ id: groups.id })
   revalidatePath("/groups")
@@ -74,6 +75,7 @@ export async function updateGroup(id: string, input: GroupInput) {
       name: data.name,
       openTime: data.openTime,
       closeTime: data.closeTime,
+      uniformWeek: data.uniformWeek ?? false,
     })
     .where(eq(groups.id, id))
   revalidatePath("/groups")
@@ -104,16 +106,14 @@ export async function createStaffingRule(input: StaffingRuleInput) {
       endTime: data.endTime,
       minStaff: data.minStaff,
       minPedagoger: data.minPedagoger,
+      templateId: data.templateId,
     })
     .returning({ id: staffingRules.id })
   revalidatePath(`/groups/${data.groupId}`)
   return { id: row.id }
 }
 
-export async function updateStaffingRule(
-  id: string,
-  input: StaffingRuleInput
-) {
+export async function updateStaffingRule(id: string, input: StaffingRuleInput) {
   await requireAuth()
   const data = staffingRuleInputSchema.parse(input)
   await assertNoOverlap(
@@ -143,5 +143,136 @@ export async function deleteStaffingRule(id: string, groupId: string) {
   await db
     .delete(staffingRules)
     .where(and(eq(staffingRules.id, id), eq(staffingRules.groupId, groupId)))
+  revalidatePath(`/groups/${groupId}`)
+}
+
+export async function copyStaffingRulesToDays(
+  groupId: string,
+  sourceWeekday: number,
+  targetWeekdays: number[]
+) {
+  await requireAuth()
+  const source = await db
+    .select()
+    .from(staffingRules)
+    .where(
+      and(
+        eq(staffingRules.groupId, groupId),
+        eq(staffingRules.weekday, sourceWeekday)
+      )
+    )
+  let copied = 0
+  const conflicts: number[] = []
+  for (const target of targetWeekdays) {
+    let hasConflict = false
+    for (const rule of source) {
+      try {
+        await assertNoOverlap(groupId, target, rule.startTime, rule.endTime)
+        await db.insert(staffingRules).values({
+          groupId,
+          weekday: target,
+          startTime: rule.startTime,
+          endTime: rule.endTime,
+          minStaff: rule.minStaff,
+          minPedagoger: rule.minPedagoger,
+          templateId: rule.templateId,
+        })
+        copied++
+      } catch {
+        hasConflict = true
+      }
+    }
+    if (hasConflict) conflicts.push(target)
+  }
+  revalidatePath(`/groups/${groupId}`)
+  return { copied, conflicts }
+}
+
+export async function createStaffingRuleForWholeWeek(input: StaffingRuleInput) {
+  await requireAuth()
+  const data = staffingRuleInputSchema.parse(input)
+  const templateId = crypto.randomUUID()
+  await db.transaction(async (tx) => {
+    for (let weekday = 0; weekday < 7; weekday++) {
+      const existing = await tx
+        .select()
+        .from(staffingRules)
+        .where(
+          and(
+            eq(staffingRules.groupId, data.groupId),
+            eq(staffingRules.weekday, weekday)
+          )
+        )
+      for (const row of existing) {
+        if (
+          timesOverlap(data.startTime, data.endTime, row.startTime, row.endTime)
+        )
+          throw new Error(`StaffingRule.overlap:${weekday}`)
+      }
+      await tx
+        .insert(staffingRules)
+        .values({
+          groupId: data.groupId,
+          weekday,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          minStaff: data.minStaff,
+          minPedagoger: data.minPedagoger,
+          templateId,
+        })
+    }
+  })
+  revalidatePath(`/groups/${data.groupId}`)
+}
+
+export async function updateStaffingRuleByTemplate(
+  templateId: string,
+  groupId: string,
+  patch: Omit<StaffingRuleInput, "groupId" | "weekday">
+) {
+  await requireAuth()
+  const rules = await db
+    .select()
+    .from(staffingRules)
+    .where(
+      and(
+        eq(staffingRules.groupId, groupId),
+        eq(staffingRules.templateId, templateId)
+      )
+    )
+  for (const rule of rules) {
+    await assertNoOverlap(
+      groupId,
+      rule.weekday,
+      patch.startTime,
+      patch.endTime,
+      rule.id
+    )
+    await db
+      .update(staffingRules)
+      .set({
+        startTime: patch.startTime,
+        endTime: patch.endTime,
+        minStaff: patch.minStaff,
+        minPedagoger: patch.minPedagoger,
+      })
+      .where(eq(staffingRules.id, rule.id))
+  }
+  revalidatePath(`/groups/${groupId}`)
+}
+
+export async function deleteStaffingRulesByTemplate(
+  templateId: string,
+  groupId: string
+) {
+  await requireAuth()
+  await db
+    .delete(staffingRules)
+    .where(
+      and(
+        eq(staffingRules.groupId, groupId),
+        eq(staffingRules.templateId, templateId)
+      )
+    )
   revalidatePath(`/groups/${groupId}`)
 }
