@@ -10,6 +10,7 @@ import {
   text,
   time,
   timestamp,
+  uuid,
 } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
 
@@ -133,6 +134,7 @@ export const groups = pgTable("groups", {
   name: text("name").notNull(),
   openTime: time("open_time").notNull(),
   closeTime: time("close_time").notNull(),
+  uniformWeek: boolean("uniform_week").notNull().default(false),
 })
 
 // weekday: 0 = Monday … 6 = Sunday (matches `staff_availability`).
@@ -150,6 +152,7 @@ export const staffingRules = pgTable(
     endTime: time("end_time").notNull(),
     minStaff: integer("min_staff").notNull(),
     minPedagoger: integer("min_pedagoger").notNull(),
+    templateId: uuid("template_id"),
   },
   (t) => [index("staffing_rules_group_weekday_idx").on(t.groupId, t.weekday)]
 )

@@ -15,11 +15,7 @@ export default async function EditGroupPage({
 }) {
   const { id } = await params
   const t = await getTranslations("GroupsDetailPage")
-  const [row] = await db
-    .select()
-    .from(groups)
-    .where(eq(groups.id, id))
-    .limit(1)
+  const [row] = await db.select().from(groups).where(eq(groups.id, id)).limit(1)
   if (!row) notFound()
 
   const rules = await db
@@ -43,6 +39,7 @@ export default async function EditGroupPage({
               name: row.name,
               openTime: row.openTime,
               closeTime: row.closeTime,
+              uniformWeek: row.uniformWeek,
             }}
           />
         </CardContent>
@@ -53,7 +50,14 @@ export default async function EditGroupPage({
           <CardTitle>{t("staffingRules")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <StaffingRulesEditor groupId={id} initial={rules} />
+          <StaffingRulesEditor
+            groupId={id}
+            initial={rules}
+            uniformWeek={row.uniformWeek}
+            groupName={row.name}
+            openTime={row.openTime}
+            closeTime={row.closeTime}
+          />
         </CardContent>
       </Card>
     </div>
