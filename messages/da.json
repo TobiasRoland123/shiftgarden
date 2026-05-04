@@ -77,6 +77,66 @@
       "minutes": "min"
     }
   },
+  "GroupsPage": {
+    "title": "Grupper",
+    "subtitle": "{count, plural, =0 {Ingen grupper} one {# gruppe} other {# grupper}}",
+    "newGroup": "Ny gruppe",
+    "empty": "Ingen grupper endnu. Klik på “Ny gruppe” for at tilføje.",
+    "search": "Søg grupper",
+    "columns": {
+      "name": "Navn",
+      "openHours": "Åbent",
+      "rules": "Bemandingsregler"
+    },
+    "rulesCount": "{count, plural, =0 {Ingen regler} one {# regel} other {# regler}}"
+  },
+  "GroupsForm": {
+    "labels": {
+      "name": "Navn",
+      "openTime": "Åbner",
+      "closeTime": "Lukker"
+    },
+    "buttons": {
+      "create": "Opret gruppe",
+      "save": "Gem",
+      "saving": "Gemmer…",
+      "delete": "Slet gruppe"
+    },
+    "toasts": {
+      "created": "Gruppe oprettet",
+      "saved": "Gemt",
+      "saveFailed": "Kunne ikke gemme",
+      "deleted": "Gruppe slettet",
+      "deleteFailed": "Kunne ikke slette gruppe"
+    },
+    "deleteConfirm": "Slet denne gruppe? Tilknyttede bemandingsregler slettes også."
+  },
+  "GroupsDetailPage": {
+    "details": "Detaljer",
+    "staffingRules": "Bemandingsregler"
+  },
+  "StaffingRulesEditor": {
+    "headers": {
+      "from": "Fra",
+      "to": "Til",
+      "minStaff": "Min. personale",
+      "minPedagoger": "Min. pædagoger"
+    },
+    "buttons": {
+      "addRule": "+ regel",
+      "save": "Gem",
+      "saving": "Gemmer…",
+      "delete": "Slet"
+    },
+    "empty": "Ingen regler",
+    "toasts": {
+      "saved": "Regel gemt",
+      "deleted": "Regel slettet",
+      "overlap": "Reglen overlapper med en anden regel på samme dag",
+      "saveFailed": "Kunne ikke gemme regel",
+      "deleteFailed": "Kunne ikke slette regel"
+    }
+  },
   "Roles": {
     "pedagogue": "Pædagog",
     "assistant": "Medhjælper",
@@ -85,7 +145,8 @@
   "Validation": {
     "nameRequired": "Navn er påkrævet",
     "timeFormat": "Brug TT:MM",
-    "endAfterStart": "Slut skal være efter start"
+    "endAfterStart": "Slut skal være efter start",
+    "pedagogLeStaff": "Min. pædagoger må ikke overstige min. personale"
   },
   "Weekdays": {
     "Full": {

@@ -133,21 +133,26 @@ export const groups = pgTable("groups", {
   name: text("name").notNull(),
   openTime: time("open_time").notNull(),
   closeTime: time("close_time").notNull(),
-  expectedChildren: jsonb("expected_children").notNull(),
 })
 
-export const staffingRules = pgTable("staffing_rules", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  groupId: text("group_id")
-    .notNull()
-    .references(() => groups.id, { onDelete: "cascade" }),
-  startTime: time("start_time").notNull(),
-  endTime: time("end_time").notNull(),
-  minStaff: integer("min_staff").notNull(),
-  minPedagoger: integer("min_pedagoger").notNull(),
-})
+// weekday: 0 = Monday … 6 = Sunday (matches `staff_availability`).
+export const staffingRules = pgTable(
+  "staffing_rules",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    groupId: text("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    weekday: integer("weekday").notNull(),
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+    minStaff: integer("min_staff").notNull(),
+    minPedagoger: integer("min_pedagoger").notNull(),
+  },
+  (t) => [index("staffing_rules_group_weekday_idx").on(t.groupId, t.weekday)]
+)
 
 export const shifts = pgTable("shifts", {
   id: text("id")
