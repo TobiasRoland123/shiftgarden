@@ -102,7 +102,7 @@ export const staff = pgTable("staff", {
   name: text("name").notNull(),
   email: text("email").unique(),
   role: roleEnum("role").notNull(),
-  weeklyContractHours: integer("weekly_contract_hours").notNull(),
+  weeklyMaxHours: integer("weekly_contract_hours").notNull(),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

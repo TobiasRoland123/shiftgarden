@@ -14,7 +14,7 @@ const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri"] as const
 type Props = {
   staffId: string
   initial: AvailabilityWindow[]
-  weeklyContractHours: number
+  weeklyMaxHours: number
 }
 
 function normalizeTime(t: string) {
@@ -35,7 +35,7 @@ function formatHours(minutes: number) {
 export function AvailabilityEditor({
   staffId,
   initial,
-  weeklyContractHours,
+  weeklyMaxHours,
 }: Props) {
   const t = useTranslations("AvailabilityEditor")
   const [windows, setWindows] = useState<AvailabilityWindow[]>(() =>
@@ -58,8 +58,8 @@ export function AvailabilityEditor({
     if (!w.startTime || !w.endTime || w.startTime >= w.endTime) return total
     return total + minutesFromTime(w.endTime) - minutesFromTime(w.startTime)
   }, 0)
-  const contractMinutes = weeklyContractHours * 60
-  const hasAvailabilityWarning = availableMinutes < contractMinutes
+  const maxMinutes = weeklyMaxHours * 60
+  const hasAvailabilityWarning = availableMinutes < maxMinutes
 
   function update(idx: number, patch: Partial<AvailabilityWindow>) {
     setWindows((ws) => ws.map((w, i) => (i === idx ? { ...w, ...patch } : w)))
@@ -154,9 +154,9 @@ export function AvailabilityEditor({
       </div>
       {hasAvailabilityWarning ? (
         <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-          {t("warnings.availabilityBelowEmployment", {
+          {t("warnings.availabilityBelowMax", {
             availableHours: formatHours(availableMinutes),
-            employmentHours: formatHours(contractMinutes),
+            maxHours: formatHours(maxMinutes),
           })}
         </div>
       ) : null}

@@ -23,7 +23,7 @@
       "name": "Navn",
       "role": "Rolle",
       "email": "E-mail",
-      "contractHours": "Kontrakt t/uge",
+      "maxHours": "Maks. t/uge",
       "availability": "Tilgængelighed",
       "status": "Status"
     }
@@ -33,7 +33,7 @@
       "name": "Navn",
       "email": "E-mail",
       "role": "Rolle",
-      "weeklyContractHours": "Ugentlige kontrakttimer",
+      "weeklyMaxHours": "Maks. ugentlige timer",
       "active": "Aktiv"
     },
     "buttons": {
@@ -70,7 +70,7 @@
       "saveFailed": "Kunne ikke gemme tilgængelighed"
     },
     "warnings": {
-      "availabilityBelowEmployment": "Tilgængelige timer er {availableHours}t, hvilket er mindre end ansættelsestimerne på {employmentHours}t."
+      "availabilityBelowMax": "Tilgængelige timer er {availableHours}t, hvilket er mindre end den ugentlige grænse på {maxHours}t."
     },
     "units": {
       "hours": "t",

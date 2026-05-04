@@ -50,7 +50,7 @@ export function StaffForm({ mode, staffId, initial }: Props) {
       name: initial?.name ?? "",
       email: initial?.email ?? "",
       role: initial?.role ?? "pedagogue",
-      weeklyContractHours: initial?.weeklyContractHours ?? 37,
+      weeklyMaxHours: initial?.weeklyMaxHours ?? 37,
       active: initial?.active ?? true,
     },
   })
@@ -151,10 +151,10 @@ export function StaffForm({ mode, staffId, initial }: Props) {
         />
         <FormField
           control={form.control}
-          name="weeklyContractHours"
+          name="weeklyMaxHours"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel>{t("labels.weeklyContractHours")}</FormLabel>
+              <FormLabel>{t("labels.weeklyMaxHours")}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -191,7 +191,12 @@ export function StaffForm({ mode, staffId, initial }: Props) {
           )}
         />
         <div>
-          <Button type="submit" disabled={submitting || (mode === "edit" && !form.formState.isDirty)}>
+          <Button
+            type="submit"
+            disabled={
+              submitting || (mode === "edit" && !form.formState.isDirty)
+            }
+          >
             {submitting
               ? t("buttons.saving")
               : mode === "create"
