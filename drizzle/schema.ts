@@ -86,7 +86,7 @@ export const authenticators = pgTable(
 // --- Domain enums ---
 
 export const roleEnum = pgEnum("role", ["pedagogue", "assistant", "substitute"])
-export const shiftSourceEnum = pgEnum("shift_source", ["auto", "manual"])
+export const shiftSourceEnum = pgEnum("shift_source", ["ai", "manual"])
 export const absenceTypeEnum = pgEnum("absence_type", [
   "sick",
   "vacation",

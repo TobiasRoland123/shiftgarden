@@ -22,6 +22,13 @@
       "when": 1777640000000,
       "tag": "0002_rename_role_values_to_english",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777928954000,
+      "tag": "0003_rename_shift_source_auto_to_ai",
+      "breakpoints": true
     }
   ]
 }
