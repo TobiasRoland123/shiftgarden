@@ -183,9 +183,24 @@ function isFullyAbsent(
   periodStart: Date,
   periodEnd: Date
 ): boolean {
-  return absences.some(
-    (a) => a.startsAt <= periodStart && a.endsAt >= periodEnd
-  )
+  const overlappingAbsences = absences
+    .filter((a) => a.endsAt >= periodStart && a.startsAt <= periodEnd)
+    .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
+
+  if (overlappingAbsences.length === 0) return false
+  if (overlappingAbsences[0]!.startsAt > periodStart) return false
+
+  let coveredUntil = overlappingAbsences[0]!.endsAt
+  if (coveredUntil >= periodEnd) return true
+
+  for (let i = 1; i < overlappingAbsences.length; i++) {
+    const absence = overlappingAbsences[i]!
+    if (absence.startsAt > coveredUntil) return false
+    if (absence.endsAt > coveredUntil) coveredUntil = absence.endsAt
+    if (coveredUntil >= periodEnd) return true
+  }
+
+  return false
 }
 
 function expandAvailability(
