@@ -7,7 +7,7 @@ const timeStringSchema = z
   .regex(/^\d{2}:\d{2}(:\d{2})?$/, "Validation.timeFormat")
 const dateStringSchema = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Validation.dateFormat")
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
 
 export const planningPeriodSchema = z
   .object({
