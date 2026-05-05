@@ -22,11 +22,16 @@ export const planningPeriodSchema = z
     },
   )
 
-export const planningAvailabilityWindowSchema = z.object({
-  date: dateStringSchema,
-  startUtc: utcIsoSchema,
-  endUtc: utcIsoSchema,
-})
+export const planningAvailabilityWindowSchema = z
+  .object({
+    date: dateStringSchema,
+    startUtc: utcIsoSchema,
+    endUtc: utcIsoSchema,
+  })
+  .refine(({ startUtc, endUtc }) => startUtc < endUtc, {
+    message: "Validation.endAfterStart",
+    path: ["endUtc"],
+  })
 
 export const staffEntrySchema = z.object({
   id: z.string().min(1),
