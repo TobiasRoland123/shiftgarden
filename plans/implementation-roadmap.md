@@ -127,8 +127,8 @@ Outputs structured planning data:
 - staff
 - availability
 - absences
-- groups
-- rules
+- groups (including per-group staffing rules from `staffingRules` table)
+- rules (global planning rules from `planningRules` table)
 
 Responsibilities:
 
