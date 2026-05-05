@@ -57,12 +57,25 @@ export const absenceEntrySchema = z
     },
   )
 
-export const staffingRuleSchema = z.object({
-  startTime: timeStringSchema,
-  endTime: timeStringSchema,
-  minStaff: z.number().int().min(0),
-  minPedagoger: z.number().int().min(0),
-})
+export const staffingRuleSchema = z
+  .object({
+    startTime: timeStringSchema,
+    endTime: timeStringSchema,
+    minStaff: z.number().int().min(0),
+    minPedagoger: z.number().int().min(0),
+  })
+  .refine(
+    ({ startTime, endTime }) => {
+      const normalizeTime = (value: string) =>
+        value.length === 5 ? `${value}:00` : value
+
+      return normalizeTime(startTime) < normalizeTime(endTime)
+    },
+    {
+      message: "Validation.endAfterStart",
+      path: ["endTime"],
+    },
+  )
 
 export const groupEntrySchema = z
   .object({
