@@ -5,25 +5,21 @@ const utcIsoSchema = z.string().datetime({ offset: false })
 const timeStringSchema = z
   .string()
   .regex(/^\d{2}:\d{2}(:\d{2})?$/, "Validation.timeFormat")
-const dateStringSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/)
+const dateStringSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 
 export const planningPeriodSchema = z
   .object({
     startUtc: utcIsoSchema,
     endUtc: utcIsoSchema,
   })
-  .refine(
-    ({ startUtc, endUtc }) => Date.parse(startUtc) < Date.parse(endUtc),
-    {
-      message: "Validation.endAfterStart",
-      path: ["endUtc"],
-    },
-  )
+  .refine(({ startUtc, endUtc }) => Date.parse(startUtc) < Date.parse(endUtc), {
+    message: "Validation.endAfterStart",
+    path: ["endUtc"],
+  })
 
 export const planningAvailabilityWindowSchema = z
   .object({
+    staffId: z.string().min(1),
     date: dateStringSchema,
     startUtc: utcIsoSchema,
     endUtc: utcIsoSchema,
@@ -49,13 +45,10 @@ export const absenceEntrySchema = z
     endsAt: utcIsoSchema,
     type: absenceTypeSchema,
   })
-  .refine(
-    (value) => Date.parse(value.startsAt) < Date.parse(value.endsAt),
-    {
-      message: "Validation.endAfterStart",
-      path: ["endsAt"],
-    },
-  )
+  .refine((value) => Date.parse(value.startsAt) < Date.parse(value.endsAt), {
+    message: "Validation.endAfterStart",
+    path: ["endsAt"],
+  })
 
 export const staffingRuleSchema = z
   .object({
@@ -74,7 +67,7 @@ export const staffingRuleSchema = z
     {
       message: "Validation.endAfterStart",
       path: ["endTime"],
-    },
+    }
   )
 
 export const groupEntrySchema = z
@@ -96,7 +89,7 @@ export const groupEntrySchema = z
     {
       message: "Validation.endTimeAfterStartTime",
       path: ["closeTime"],
-    },
+    }
   )
 
 export const planningRuleSchema = z.object({
