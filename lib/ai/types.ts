@@ -9,10 +9,18 @@ const dateStringSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Validation.dateFormat")
 
-export const planningPeriodSchema = z.object({
-  startUtc: utcIsoSchema,
-  endUtc: utcIsoSchema,
-})
+export const planningPeriodSchema = z
+  .object({
+    startUtc: utcIsoSchema,
+    endUtc: utcIsoSchema,
+  })
+  .refine(
+    ({ startUtc, endUtc }) => Date.parse(startUtc) < Date.parse(endUtc),
+    {
+      message: "Validation.endAfterStart",
+      path: ["endUtc"],
+    },
+  )
 
 export const planningAvailabilityWindowSchema = z.object({
   date: dateStringSchema,
