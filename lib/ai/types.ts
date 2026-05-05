@@ -64,14 +64,27 @@ export const staffingRuleSchema = z.object({
   minPedagoger: z.number().int().min(0),
 })
 
-export const groupEntrySchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  openTime: timeStringSchema,
-  closeTime: timeStringSchema,
-  expectedChildren: z.number().int().min(0),
-  staffingRules: z.array(staffingRuleSchema),
-})
+export const groupEntrySchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    openTime: timeStringSchema,
+    closeTime: timeStringSchema,
+    expectedChildren: z.number().int().min(0),
+    staffingRules: z.array(staffingRuleSchema),
+  })
+  .refine(
+    ({ openTime, closeTime }) => {
+      const normalizeTime = (value: string) =>
+        value.length === 5 ? `${value}:00` : value
+
+      return normalizeTime(openTime) < normalizeTime(closeTime)
+    },
+    {
+      message: "Validation.endTimeAfterStartTime",
+      path: ["closeTime"],
+    },
+  )
 
 export const planningRuleSchema = z.object({
   minPedagogueRatio: z.number(),
