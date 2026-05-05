@@ -42,12 +42,20 @@ export const staffEntrySchema = z.object({
 
 export const absenceTypeSchema = z.enum(["sick", "vacation", "other"])
 
-export const absenceEntrySchema = z.object({
-  staffId: z.string().min(1),
-  startsAt: utcIsoSchema,
-  endsAt: utcIsoSchema,
-  type: absenceTypeSchema,
-})
+export const absenceEntrySchema = z
+  .object({
+    staffId: z.string().min(1),
+    startsAt: utcIsoSchema,
+    endsAt: utcIsoSchema,
+    type: absenceTypeSchema,
+  })
+  .refine(
+    (value) => Date.parse(value.startsAt) < Date.parse(value.endsAt),
+    {
+      message: "Validation.endAfterStart",
+      path: ["endsAt"],
+    },
+  )
 
 export const staffingRuleSchema = z.object({
   startTime: timeStringSchema,
