@@ -33,7 +33,7 @@
       "name": "Navn",
       "email": "E-mail",
       "role": "Rolle",
-      "weeklyMaxHours": "Maks. ugentlige timer",
+      "weeklyMaxHours": "Maks. timer pr. uge",
       "active": "Aktiv"
     },
     "buttons": {

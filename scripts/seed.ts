@@ -8,7 +8,12 @@ import { eq } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { Pool } from "pg"
 
-import { staff, staffAvailability, users } from "@/drizzle/schema"
+import {
+  planningRules,
+  staff,
+  staffAvailability,
+  users,
+} from "@/drizzle/schema"
 import type { Role } from "@/lib/validation/staff"
 
 type SeedWindow = { weekday: number; startTime: string; endTime: string }
@@ -19,6 +24,14 @@ type SeedStaff = {
   weeklyMaxHours: number
   active: boolean
   availability: SeedWindow[]
+}
+
+const defaultPlanningRules = {
+  id: "global",
+  minPedagogueRatio: 0.5,
+  minStaffRatio: 0.2,
+  breakMinutes: 30,
+  breakThresholdHours: 4.5,
 }
 
 // weekday 0=Mon … 4=Fri
@@ -129,6 +142,21 @@ async function main() {
     })
 
   console.log(`Seeded planner: ${email}`)
+
+  await db
+    .insert(planningRules)
+    .values(defaultPlanningRules)
+    .onConflictDoUpdate({
+      target: planningRules.id,
+      set: {
+        minPedagogueRatio: defaultPlanningRules.minPedagogueRatio,
+        minStaffRatio: defaultPlanningRules.minStaffRatio,
+        breakMinutes: defaultPlanningRules.breakMinutes,
+        breakThresholdHours: defaultPlanningRules.breakThresholdHours,
+      },
+    })
+
+  console.log("Seeded default planning rules")
 
   for (const s of dummyStaff) {
     const [row] = await db
