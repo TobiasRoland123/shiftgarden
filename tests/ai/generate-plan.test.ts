@@ -1,14 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("ai", () => ({
-  generateObject: vi.fn(),
+  generateText: vi.fn(),
+  Output: {
+    object: vi.fn(({ schema }: { schema: unknown }) => ({
+      __outputKind: "object",
+      schema,
+    })),
+  },
 }))
 
 vi.mock("@ai-sdk/openai", () => ({
   openai: vi.fn((id: string) => ({ __model: id })),
 }))
 
-import { generateObject } from "ai"
+import { Output, generateText } from "ai"
 import { openai } from "@ai-sdk/openai"
 
 import { generatePlan } from "@/lib/ai/generate-plan"
@@ -97,29 +103,30 @@ describe("buildPlannerPrompt", () => {
 })
 
 describe("generatePlan", () => {
-  it("calls generateObject with planSchema and returns the model output", async () => {
-    vi.mocked(generateObject).mockResolvedValue({
-      object: MOCK_PLAN,
+  it("calls generateText with Output.object(planSchema) and returns the model output", async () => {
+    vi.mocked(generateText).mockResolvedValue({
+      output: MOCK_PLAN,
     } as never)
 
     const result = await generatePlan(INPUT, { model: "gpt-4o-mini" })
 
     expect(openai).toHaveBeenCalledWith("gpt-4o-mini")
-    expect(generateObject).toHaveBeenCalledTimes(1)
-    const callArg = vi.mocked(generateObject).mock.calls[0][0] as {
-      schema: unknown
+    expect(Output.object).toHaveBeenCalledWith({ schema: planSchema })
+    expect(generateText).toHaveBeenCalledTimes(1)
+    const callArg = vi.mocked(generateText).mock.calls[0][0] as unknown as {
+      output: { schema: unknown }
       system: string
       prompt: string
     }
-    expect(callArg.schema).toBe(planSchema)
+    expect(callArg.output.schema).toBe(planSchema)
     expect(callArg.system).toContain("daycare shift scheduler")
     expect(callArg.prompt).toContain(JSON.stringify(INPUT))
     expect(result).toEqual(MOCK_PLAN)
   })
 
   it("falls back to OPENAI_PLANNER_MODEL env var, then gpt-4o", async () => {
-    vi.mocked(generateObject).mockResolvedValue({
-      object: MOCK_PLAN,
+    vi.mocked(generateText).mockResolvedValue({
+      output: MOCK_PLAN,
     } as never)
 
     const original = process.env.OPENAI_PLANNER_MODEL

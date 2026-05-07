@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai"
-import { generateObject } from "ai"
+import { Output, generateText } from "ai"
 
 import { planSchema, type Plan } from "./plan-schema"
 import { buildPlannerPrompt } from "./prompt"
@@ -18,13 +18,13 @@ export async function generatePlan(
   const modelId =
     opts.model ?? process.env.OPENAI_PLANNER_MODEL ?? "gpt-4o"
 
-  const { object } = await generateObject({
+  const { output } = await generateText({
     model: openai(modelId),
-    schema: planSchema,
+    output: Output.object({ schema: planSchema }),
     system,
     prompt: user,
     abortSignal: opts.signal,
   })
 
-  return object
+  return output
 }
