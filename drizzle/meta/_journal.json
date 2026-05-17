@@ -8,6 +8,13 @@
       "when": 1778965377786,
       "tag": "0000_public_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778969614438,
+      "tag": "0001_rapid_sir_ram",
+      "breakpoints": true
     }
   ]
 }
