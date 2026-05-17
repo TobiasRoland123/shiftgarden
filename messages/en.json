@@ -22,8 +22,12 @@
     "emptyTitle": "No staff members yet",
     "emptyDescription": "Add your first staff member to start building schedules.",
     "backToStaff": "Back to staff",
+    "backToStaffMember": "Back to staff member",
     "newTitle": "Create staff member",
     "newDescription": "Add staff details and Monday-Friday availability.",
+    "edit": "Edit",
+    "editTitle": "Edit staff member",
+    "editDescription": "Update staff details and Monday-Friday availability.",
     "table": {
       "name": "Name",
       "role": "Role",

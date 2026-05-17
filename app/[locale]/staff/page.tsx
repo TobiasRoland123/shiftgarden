@@ -1,11 +1,20 @@
 import { getTranslations } from "next-intl/server"
 import { asc } from "drizzle-orm"
+import type { ReactNode } from "react"
 
 import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { db } from "@/lib/db"
 import { staffMembers } from "@/lib/db/schema"
 import { formatStaffRole } from "@/lib/staff"
+
+function CellLink({ children, href }: { children: ReactNode; href: string }) {
+  return (
+    <Link href={href} className="block px-4 py-3">
+      {children}
+    </Link>
+  )
+}
 
 export default async function StaffPage() {
   const t = await getTranslations("staff")
@@ -53,27 +62,42 @@ export default async function StaffPage() {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {staff.map((member) => (
-                <tr key={member.id}>
-                  <td className="px-4 py-3 font-medium">
-                    {member.firstName} {member.lastName}
-                  </td>
-                  <td className="px-4 py-3">
-                    {formatStaffRole(member.role, t)}
-                  </td>
-                  <td className="px-4 py-3">{member.maxHoursPerWeek}</td>
-                  <td className="px-4 py-3">
-                    {member.active ? t("status.active") : t("status.inactive")}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Button asChild variant="ghost" size="sm">
-                      <Link href={`/staff/${member.id}`}>
-                        {t("table.view")}
-                      </Link>
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+              {staff.map((member) => {
+                const href = `/staff/${member.id}`
+
+                return (
+                  <tr
+                    key={member.id}
+                    className="group transition-colors hover:bg-muted/40"
+                  >
+                    <td className="p-0 font-medium">
+                      <CellLink href={href}>
+                        {member.firstName} {member.lastName}
+                      </CellLink>
+                    </td>
+                    <td className="p-0">
+                      <CellLink href={href}>
+                        {formatStaffRole(member.role, t)}
+                      </CellLink>
+                    </td>
+                    <td className="p-0">
+                      <CellLink href={href}>{member.maxHoursPerWeek}</CellLink>
+                    </td>
+                    <td className="p-0">
+                      <CellLink href={href}>
+                        {member.active
+                          ? t("status.active")
+                          : t("status.inactive")}
+                      </CellLink>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Button asChild variant="ghost" size="sm">
+                        <Link href={href}>{t("table.view")}</Link>
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

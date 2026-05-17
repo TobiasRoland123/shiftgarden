@@ -49,9 +49,14 @@ export default async function StaffDetailPage({
   return (
     <div className="flex min-h-svh flex-col gap-6 p-6">
       <div className="flex flex-col gap-4">
-        <Button asChild variant="ghost" className="w-fit">
-          <Link href="/staff">{t("backToStaff")}</Link>
-        </Button>
+        <div className="flex items-center justify-between gap-4">
+          <Button asChild variant="ghost" className="w-fit">
+            <Link href="/staff">{t("backToStaff")}</Link>
+          </Button>
+          <Button asChild>
+            <Link href={`/staff/${staffMember.id}/edit`}>{t("edit")}</Link>
+          </Button>
+        </div>
         <div>
           <h1 className="text-2xl font-medium tracking-normal">
             {staffMember.firstName} {staffMember.lastName}

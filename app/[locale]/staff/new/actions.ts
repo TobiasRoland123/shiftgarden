@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { eq } from "drizzle-orm"
 
 import { redirect } from "@/i18n/navigation"
 import { defaultLocale, locales, type Locale } from "@/i18n/routing"
@@ -12,7 +13,7 @@ import {
   weekdayAvailability,
 } from "@/lib/staff"
 
-type CreateStaffState = {
+type StaffFormState = {
   errors: string[]
 }
 
@@ -68,9 +69,9 @@ function getAvailabilityRows(formData: FormData) {
 }
 
 async function createStaff(
-  _previousState: CreateStaffState,
+  _previousState: StaffFormState,
   formData: FormData
-): Promise<CreateStaffState> {
+): Promise<StaffFormState> {
   const locale = getLocale(formData)
   const firstName = getString(formData, "firstName")
   const lastName = getString(formData, "lastName")
@@ -130,4 +131,85 @@ async function createStaff(
   return { errors: [] }
 }
 
-export { createStaff }
+async function updateStaff(
+  _previousState: StaffFormState,
+  formData: FormData
+): Promise<StaffFormState> {
+  const locale = getLocale(formData)
+  const staffMemberId = getString(formData, "staffMemberId")
+  const firstName = getString(formData, "firstName")
+  const lastName = getString(formData, "lastName")
+  const role = getString(formData, "role")
+  const maxHoursPerWeek = Number(getString(formData, "maxHoursPerWeek"))
+  const active = formData.get("active") === "on"
+  const availability = getAvailabilityRows(formData)
+
+  const errors = [...availability.errors]
+
+  if (!staffMemberId) {
+    errors.push("Staff member is required.")
+  }
+
+  if (!firstName) {
+    errors.push("First name is required.")
+  }
+
+  if (!lastName) {
+    errors.push("Last name is required.")
+  }
+
+  if (!isStaffRole(role)) {
+    errors.push("Choose a valid staff role.")
+  }
+
+  if (!Number.isInteger(maxHoursPerWeek) || maxHoursPerWeek <= 0) {
+    errors.push("Max hours per week must be a positive whole number.")
+  }
+
+  if (errors.length > 0 || !isStaffRole(role)) {
+    return { errors }
+  }
+
+  const [updatedStaffMember] = await db
+    .update(staffMembers)
+    .set({
+      firstName,
+      lastName,
+      role,
+      maxHoursPerWeek,
+      active,
+    })
+    .where(eq(staffMembers.id, staffMemberId))
+    .returning({ id: staffMembers.id })
+
+  if (!updatedStaffMember) {
+    return { errors: ["Staff member could not be found."] }
+  }
+
+  await db
+    .delete(staffMemberAvailability)
+    .where(eq(staffMemberAvailability.staffMemberId, updatedStaffMember.id))
+
+  if (availability.rows.length > 0) {
+    await db.insert(staffMemberAvailability).values(
+      availability.rows.map((row) => ({
+        staffMemberId: updatedStaffMember.id,
+        ...row,
+      }))
+    )
+  }
+
+  revalidatePath("/staff")
+  revalidatePath(`/staff/${updatedStaffMember.id}`)
+  revalidatePath(`/staff/${updatedStaffMember.id}/edit`)
+  if (locale !== defaultLocale) {
+    revalidatePath(`/${locale}/staff`)
+    revalidatePath(`/${locale}/staff/${updatedStaffMember.id}`)
+    revalidatePath(`/${locale}/staff/${updatedStaffMember.id}/edit`)
+  }
+  redirect({ href: `/staff/${updatedStaffMember.id}`, locale })
+
+  return { errors: [] }
+}
+
+export { createStaff, updateStaff }

@@ -22,8 +22,12 @@
     "emptyTitle": "Ingen medarbejdere endnu",
     "emptyDescription": "Tilføj den første medarbejder for at begynde at lave vagtplaner.",
     "backToStaff": "Tilbage til personale",
+    "backToStaffMember": "Tilbage til medarbejder",
     "newTitle": "Opret medarbejder",
     "newDescription": "Tilføj medarbejderoplysninger og tilgængelighed mandag-fredag.",
+    "edit": "Rediger",
+    "editTitle": "Rediger medarbejder",
+    "editDescription": "Opdater medarbejderoplysninger og tilgængelighed mandag-fredag.",
     "table": {
       "name": "Navn",
       "role": "Rolle",

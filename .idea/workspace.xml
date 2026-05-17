@@ -4,8 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a14cf001-f97f-456f-acc5-3378906ccb47" name="Changes" comment="feat: implement sidebar and app shell components for improved navigation">
+    <list default="true" id="a14cf001-f97f-456f-acc5-3378906ccb47" name="Changes" comment="feat: enhance staff management with detailed forms and availability handling">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/[locale]/staff/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/[locale]/staff/[id]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/[locale]/staff/new/actions.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/[locale]/staff/new/actions.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/[locale]/staff/new/staff-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/[locale]/staff/new/staff-form.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/[locale]/staff/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/[locale]/staff/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/messages/da.json" beforeDir="false" afterPath="$PROJECT_DIR$/messages/da.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/messages/en.json" beforeDir="false" afterPath="$PROJECT_DIR$/messages/en.json" afterDir="false" />
@@ -170,7 +173,7 @@
       <workItem from="1778127738762" duration="1062000" />
       <workItem from="1778130824150" duration="584000" />
       <workItem from="1778923503131" duration="4824000" />
-      <workItem from="1779053664549" duration="804000" />
+      <workItem from="1779053664549" duration="1896000" />
     </task>
     <task id="LOCAL-00001" summary="add implementation roadmap and MVP documentation for Shiftgarden project">
       <option name="closed" value="true" />
@@ -220,7 +223,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779050601027</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="feat: enhance staff management with detailed forms and availability handling">
+      <option name="closed" value="true" />
+      <created>1779054675942</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1779054675942</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -232,7 +243,8 @@
     <MESSAGE value="feat: add lucide dependency and import MapIcon in page component" />
     <MESSAGE value="feat: add staff members and availability tables with enums for roles and days of the week" />
     <MESSAGE value="feat: implement sidebar and app shell components for improved navigation" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: implement sidebar and app shell components for improved navigation" />
+    <MESSAGE value="feat: enhance staff management with detailed forms and availability handling" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: enhance staff management with detailed forms and availability handling" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
