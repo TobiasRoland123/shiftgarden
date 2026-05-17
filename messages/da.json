@@ -16,6 +16,66 @@
   },
   "staff": {
     "title": "Personale",
-    "description": "Denne side er klar til funktioner til personalehåndtering."
+    "description": "Administrer medarbejdere og deres ugentlige tilgængelighed.",
+    "createNew": "Opret ny",
+    "createFirst": "Opret første medarbejder",
+    "emptyTitle": "Ingen medarbejdere endnu",
+    "emptyDescription": "Tilføj den første medarbejder for at begynde at lave vagtplaner.",
+    "backToStaff": "Tilbage til personale",
+    "newTitle": "Opret medarbejder",
+    "newDescription": "Tilføj medarbejderoplysninger og tilgængelighed mandag-fredag.",
+    "table": {
+      "name": "Navn",
+      "role": "Rolle",
+      "maxHours": "Maks. timer",
+      "status": "Status",
+      "actions": "Handlinger",
+      "view": "Vis"
+    },
+    "role": {
+      "pedagog": "Pædagog",
+      "assistant": "Assistent",
+      "substitute": "Vikar"
+    },
+    "weekday": {
+      "monday": "Mandag",
+      "tuesday": "Tirsdag",
+      "wednesday": "Onsdag",
+      "thursday": "Torsdag",
+      "friday": "Fredag",
+      "saturday": "Lørdag",
+      "sunday": "Søndag"
+    },
+    "status": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "form": {
+      "errorTitle": "Ret disse felter før du gemmer",
+      "detailsTitle": "Medarbejderoplysninger",
+      "detailsDescription": "Disse felter beskriver medarbejderen.",
+      "firstName": "Fornavn",
+      "lastName": "Efternavn",
+      "role": "Rolle",
+      "chooseRole": "Vælg en rolle",
+      "maxHours": "Maks. timer pr. uge",
+      "active": "Aktiv medarbejder",
+      "availabilityTitle": "Ugentlig tilgængelighed",
+      "availabilityDescription": "Lad en hverdag være tom, hvis medarbejderen ikke er tilgængelig den dag.",
+      "startTime": "Start",
+      "endTime": "Slut",
+      "save": "Gem medarbejder",
+      "saving": "Gemmer..."
+    },
+    "detail": {
+      "role": "Rolle",
+      "maxHours": "Maks. timer pr. uge",
+      "status": "Status",
+      "availability": "Tilgængelighed",
+      "noAvailability": "Der er ikke tilføjet tilgængelighed.",
+      "day": "Dag",
+      "start": "Start",
+      "end": "Slut"
+    }
   }
 }

@@ -16,6 +16,66 @@
   },
   "staff": {
     "title": "Staff",
-    "description": "This page is ready for staff management features."
+    "description": "Manage staff members and their weekly availability.",
+    "createNew": "Create new",
+    "createFirst": "Create first staff member",
+    "emptyTitle": "No staff members yet",
+    "emptyDescription": "Add your first staff member to start building schedules.",
+    "backToStaff": "Back to staff",
+    "newTitle": "Create staff member",
+    "newDescription": "Add staff details and Monday-Friday availability.",
+    "table": {
+      "name": "Name",
+      "role": "Role",
+      "maxHours": "Max hours",
+      "status": "Status",
+      "actions": "Actions",
+      "view": "View"
+    },
+    "role": {
+      "pedagog": "Pedagog",
+      "assistant": "Assistant",
+      "substitute": "Substitute"
+    },
+    "weekday": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "form": {
+      "errorTitle": "Fix these fields before saving",
+      "detailsTitle": "Staff details",
+      "detailsDescription": "These fields describe the staff member.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "role": "Role",
+      "chooseRole": "Choose a role",
+      "maxHours": "Max hours per week",
+      "active": "Active staff member",
+      "availabilityTitle": "Weekly availability",
+      "availabilityDescription": "Leave a weekday empty when the staff member is not available that day.",
+      "startTime": "Start",
+      "endTime": "End",
+      "save": "Save staff member",
+      "saving": "Saving..."
+    },
+    "detail": {
+      "role": "Role",
+      "maxHours": "Max hours per week",
+      "status": "Status",
+      "availability": "Availability",
+      "noAvailability": "No availability has been added.",
+      "day": "Day",
+      "start": "Start",
+      "end": "End"
+    }
   }
 }
