@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a14cf001-f97f-456f-acc5-3378906ccb47" name="Changes" comment="feat: add no-console rule to ESLint configuration">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
-    </list>
+    <list default="true" id="a14cf001-f97f-456f-acc5-3378906ccb47" name="Changes" comment="feat: implement sidebar and app shell components for improved navigation" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -195,7 +190,31 @@
       <option name="project" value="LOCAL" />
       <updated>1778964483604</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="feat: add lucide dependency and import MapIcon in page component">
+      <option name="closed" value="true" />
+      <created>1778969108610</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1778969108610</updated>
+    </task>
+    <task id="LOCAL-00005" summary="feat: add staff members and availability tables with enums for roles and days of the week">
+      <option name="closed" value="true" />
+      <created>1779049933253</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1779049933253</updated>
+    </task>
+    <task id="LOCAL-00006" summary="feat: implement sidebar and app shell components for improved navigation">
+      <option name="closed" value="true" />
+      <created>1779050601027</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1779050601027</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -204,7 +223,10 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="add implementation roadmap and MVP documentation for Shiftgarden project" />
     <MESSAGE value="feat: add no-console rule to ESLint configuration" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: add no-console rule to ESLint configuration" />
+    <MESSAGE value="feat: add lucide dependency and import MapIcon in page component" />
+    <MESSAGE value="feat: add staff members and availability tables with enums for roles and days of the week" />
+    <MESSAGE value="feat: implement sidebar and app shell components for improved navigation" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: implement sidebar and app shell components for improved navigation" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>

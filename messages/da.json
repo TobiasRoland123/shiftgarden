@@ -1,0 +1,21 @@
+{
+  "app": {
+    "name": "ShiftGarden",
+    "tagline": "Personaleplanlægning",
+    "navigation": "Navigation"
+  },
+  "home": {
+    "title": "Projektet er klar!",
+    "intro": "Du kan nu tilføje komponenter og begynde at bygge.",
+    "componentNote": "Vi har allerede tilføjet knapkomponenten for dig.",
+    "button": "Knap",
+    "themeHint": "(Tryk på <key>d</key> 🔥 for at skifte mørk tilstand)"
+  },
+  "navigation": {
+    "staff": "Personale"
+  },
+  "staff": {
+    "title": "Personale",
+    "description": "Denne side er klar til funktioner til personalehåndtering."
+  }
+}

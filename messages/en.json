@@ -1,0 +1,21 @@
+{
+  "app": {
+    "name": "ShiftGarden",
+    "tagline": "Workforce planning",
+    "navigation": "Navigation"
+  },
+  "home": {
+    "title": "Project ready!",
+    "intro": "You may now add components and start building.",
+    "componentNote": "We've already added the button component for you.",
+    "button": "Button",
+    "themeHint": "(Press <key>d</key> 🔥 to toggle dark mode)"
+  },
+  "navigation": {
+    "staff": "Staff"
+  },
+  "staff": {
+    "title": "Staff",
+    "description": "This page is ready for staff management features."
+  }
+}

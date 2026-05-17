@@ -1,9 +1,9 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { Sprout, Users } from "lucide-react"
+import { useTranslations } from "next-intl"
 
+import { Link, usePathname } from "@/i18n/navigation"
 import {
   Sidebar,
   SidebarContent,
@@ -19,28 +19,30 @@ import {
 
 const navItems = [
   {
-    title: "Staff",
+    titleKey: "staff",
     href: "/staff",
     icon: Users,
   },
-]
+] as const
 
 function AppSidebar() {
   const pathname = usePathname()
+  const tApp = useTranslations("app")
+  const tNavigation = useTranslations("navigation")
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild tooltip="ShiftGarden">
+            <SidebarMenuButton size="lg" asChild tooltip={tApp("name")}>
               <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
                   <Sprout className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">ShiftGarden</span>
-                  <span className="truncate text-xs">Workforce planning</span>
+                  <span className="truncate font-medium">{tApp("name")}</span>
+                  <span className="truncate text-xs">{tApp("tagline")}</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -49,10 +51,11 @@ function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>{tApp("navigation")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
+                const title = tNavigation(item.titleKey)
                 const isActive =
                   pathname === item.href || pathname.startsWith(`${item.href}/`)
                 const Icon = item.icon
@@ -62,11 +65,11 @@ function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      tooltip={item.title}
+                      tooltip={title}
                     >
                       <Link href={item.href}>
                         <Icon />
-                        <span>{item.title}</span>
+                        <span>{title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
