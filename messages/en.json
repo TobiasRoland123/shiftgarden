@@ -12,7 +12,8 @@
     "themeHint": "(Press <key>d</key> 🔥 to toggle dark mode)"
   },
   "navigation": {
-    "staff": "Staff"
+    "staff": "Staff",
+    "groups": "Groups"
   },
   "staff": {
     "title": "Staff",
@@ -80,6 +81,53 @@
       "day": "Day",
       "start": "Start",
       "end": "End"
+    }
+  },
+  "groups": {
+    "title": "Groups",
+    "description": "Manage groups and their minimum staffing rules.",
+    "createNew": "Create new",
+    "createFirst": "Create first group",
+    "emptyTitle": "No groups yet",
+    "emptyDescription": "Add your first group to define staffing needs.",
+    "backToGroups": "Back to groups",
+    "backToGroup": "Back to group",
+    "newTitle": "Create group",
+    "newDescription": "Add a group name and Monday-Friday staff rules.",
+    "edit": "Edit",
+    "editTitle": "Edit group",
+    "editDescription": "Update the group name and staff rules.",
+    "table": {
+      "name": "Name",
+      "actions": "Actions",
+      "view": "View"
+    },
+    "form": {
+      "errorTitle": "Fix these fields before saving",
+      "detailsTitle": "Group details",
+      "detailsDescription": "These fields describe the group.",
+      "name": "Name",
+      "rulesTitle": "Staff rules",
+      "rulesDescription": "Add the minimum staffing needed for each weekday time range.",
+      "addRule": "Add rule",
+      "removeRule": "Remove rule",
+      "noRules": "No rules for this day.",
+      "startTime": "Start",
+      "endTime": "End",
+      "minPedagogs": "Min pedagogs",
+      "minStaff": "Min staff",
+      "save": "Save group",
+      "saving": "Saving..."
+    },
+    "detail": {
+      "subtitle": "Minimum staffing rules",
+      "rules": "Staff rules",
+      "noRules": "No staff rules have been added.",
+      "day": "Day",
+      "start": "Start",
+      "end": "End",
+      "minPedagogs": "Min pedagogs",
+      "minStaff": "Min staff"
     }
   }
 }

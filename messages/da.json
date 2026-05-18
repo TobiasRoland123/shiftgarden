@@ -12,7 +12,8 @@
     "themeHint": "(Tryk på <key>d</key> 🔥 for at skifte mørk tilstand)"
   },
   "navigation": {
-    "staff": "Personale"
+    "staff": "Personale",
+    "groups": "Stuer"
   },
   "staff": {
     "title": "Personale",
@@ -80,6 +81,53 @@
       "day": "Dag",
       "start": "Start",
       "end": "Slut"
+    }
+  },
+  "groups": {
+    "title": "Grupper",
+    "description": "Administrer grupper og deres minimumsbemanding.",
+    "createNew": "Opret ny",
+    "createFirst": "Opret første gruppe",
+    "emptyTitle": "Ingen grupper endnu",
+    "emptyDescription": "Tilføj den første gruppe for at definere bemandingsbehov.",
+    "backToGroups": "Tilbage til grupper",
+    "backToGroup": "Tilbage til gruppe",
+    "newTitle": "Opret gruppe",
+    "newDescription": "Tilføj gruppenavn og bemandingsregler mandag-fredag.",
+    "edit": "Rediger",
+    "editTitle": "Rediger gruppe",
+    "editDescription": "Opdater gruppenavn og bemandingsregler.",
+    "table": {
+      "name": "Navn",
+      "actions": "Handlinger",
+      "view": "Vis"
+    },
+    "form": {
+      "errorTitle": "Ret disse felter før du gemmer",
+      "detailsTitle": "Gruppeoplysninger",
+      "detailsDescription": "Disse felter beskriver gruppen.",
+      "name": "Navn",
+      "rulesTitle": "Bemandingsregler",
+      "rulesDescription": "Tilføj minimumsbemanding for hver tidsperiode på hverdage.",
+      "addRule": "Tilføj regel",
+      "removeRule": "Fjern regel",
+      "noRules": "Ingen regler for denne dag.",
+      "startTime": "Start",
+      "endTime": "Slut",
+      "minPedagogs": "Min. pædagoger",
+      "minStaff": "Min. personale",
+      "save": "Gem gruppe",
+      "saving": "Gemmer..."
+    },
+    "detail": {
+      "subtitle": "Minimumsbemanding",
+      "rules": "Bemandingsregler",
+      "noRules": "Der er ikke tilføjet bemandingsregler.",
+      "day": "Dag",
+      "start": "Start",
+      "end": "Slut",
+      "minPedagogs": "Min. pædagoger",
+      "minStaff": "Min. personale"
     }
   }
 }

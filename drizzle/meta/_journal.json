@@ -15,6 +15,13 @@
       "when": 1778969614438,
       "tag": "0001_rapid_sir_ram",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779096606232,
+      "tag": "0002_ordinary_bloodscream",
+      "breakpoints": true
     }
   ]
 }

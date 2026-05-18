@@ -66,3 +66,27 @@ export const staffMemberAvailability = pgTable(
     index("staff_member_availability_day_of_week_idx").on(table.dayOfWeek),
   ]
 )
+
+export const groups = pgTable("groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+})
+
+export const groupStaffRules = pgTable(
+  "group_staff_rules",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    dayOfWeek: dayOfWeek("day_of_week").notNull(),
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+    minPedagogs: integer("min_pedagogs").notNull(),
+    minStaff: integer("min_staff").notNull(),
+  },
+  (table) => [
+    index("group_staff_rules_group_id_idx").on(table.groupId),
+    index("group_staff_rules_day_of_week_idx").on(table.dayOfWeek),
+  ]
+)
