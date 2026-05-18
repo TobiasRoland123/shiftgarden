@@ -13,7 +13,8 @@
   },
   "navigation": {
     "staff": "Personale",
-    "groups": "Stuer"
+    "groups": "Stuer",
+    "shiftSchedule": "Vagtplan"
   },
   "staff": {
     "title": "Personale",
@@ -76,6 +77,15 @@
       "role": "Rolle",
       "maxHours": "Maks. timer pr. uge",
       "status": "Status",
+      "groups": "Grupper",
+      "groupsDescription": "Grupper denne medarbejder kan planlægges i.",
+      "group": "Gruppe",
+      "chooseGroup": "Vælg en gruppe",
+      "addGroup": "Tilføj gruppe",
+      "removeGroup": "Fjern",
+      "noGroups": "Der er ikke tilknyttet grupper.",
+      "allGroupsLinked": "Alle grupper er allerede tilknyttet.",
+      "actions": "Handlinger",
       "availability": "Tilgængelighed",
       "noAvailability": "Der er ikke tilføjet tilgængelighed.",
       "day": "Dag",
@@ -121,6 +131,17 @@
     },
     "detail": {
       "subtitle": "Minimumsbemanding",
+      "staff": "Personale",
+      "staffDescription": "Aktive medarbejdere tilknyttet denne gruppe.",
+      "staffMember": "Medarbejder",
+      "chooseStaff": "Vælg medarbejder",
+      "addStaff": "Tilføj medarbejder",
+      "removeStaff": "Fjern",
+      "noStaff": "Der er ikke tilknyttet medarbejdere.",
+      "allStaffLinked": "Alle aktive medarbejdere er allerede tilknyttet.",
+      "role": "Rolle",
+      "status": "Status",
+      "actions": "Handlinger",
       "rules": "Bemandingsregler",
       "noRules": "Der er ikke tilføjet bemandingsregler.",
       "day": "Dag",
@@ -129,5 +150,20 @@
       "minPedagogs": "Min. pædagoger",
       "minStaff": "Min. personale"
     }
+  },
+  "shiftSchedule": {
+    "title": "Vagtplan",
+    "description": "Forhåndsvis de gruppedata, der skal bruges til at lave en vagtplan.",
+    "chooseGroup": "Vælg gruppe",
+    "groupPlaceholder": "Vælg en gruppe",
+    "showJson": "Vis JSON",
+    "emptyTitle": "Ingen grupper endnu",
+    "emptyDescription": "Vælg en gruppe for at se tilknyttet personale, tilgængelighed og bemandingsregler som JSON.",
+    "noGroups": "Opret en gruppe, før du forhåndsviser vagtplandata.",
+    "previewTitle": "Vagtplan input JSON",
+    "copyJson": "Kopiér JSON",
+    "copiedJson": "Kopieret",
+    "invalidGroup": "Det valgte gruppe-id er ikke gyldigt. Vælg en gruppe fra listen.",
+    "groupNotFound": "Gruppen blev ikke fundet. Vælg en anden gruppe fra listen."
   }
 }

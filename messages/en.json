@@ -13,7 +13,8 @@
   },
   "navigation": {
     "staff": "Staff",
-    "groups": "Groups"
+    "groups": "Groups",
+    "shiftSchedule": "Shift schedule"
   },
   "staff": {
     "title": "Staff",
@@ -76,6 +77,15 @@
       "role": "Role",
       "maxHours": "Max hours per week",
       "status": "Status",
+      "groups": "Groups",
+      "groupsDescription": "Groups this staff member can be scheduled in.",
+      "group": "Group",
+      "chooseGroup": "Choose a group",
+      "addGroup": "Add group",
+      "removeGroup": "Remove",
+      "noGroups": "No groups have been linked.",
+      "allGroupsLinked": "All groups are already linked.",
+      "actions": "Actions",
       "availability": "Availability",
       "noAvailability": "No availability has been added.",
       "day": "Day",
@@ -121,6 +131,17 @@
     },
     "detail": {
       "subtitle": "Minimum staffing rules",
+      "staff": "Staff",
+      "staffDescription": "Active staff members linked to this group.",
+      "staffMember": "Staff member",
+      "chooseStaff": "Choose staff",
+      "addStaff": "Add staff",
+      "removeStaff": "Remove",
+      "noStaff": "No staff members have been linked.",
+      "allStaffLinked": "All active staff members are already linked.",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions",
       "rules": "Staff rules",
       "noRules": "No staff rules have been added.",
       "day": "Day",
@@ -129,5 +150,20 @@
       "minPedagogs": "Min pedagogs",
       "minStaff": "Min staff"
     }
+  },
+  "shiftSchedule": {
+    "title": "Shift schedule",
+    "description": "Preview the group data that will be used to generate a shift schedule.",
+    "chooseGroup": "Choose group",
+    "groupPlaceholder": "Select a group",
+    "showJson": "Show JSON",
+    "emptyTitle": "No groups yet",
+    "emptyDescription": "Choose a group to preview linked staff, availability, and staff rules as JSON.",
+    "noGroups": "Create a group before previewing shift schedule data.",
+    "previewTitle": "Schedule input JSON",
+    "copyJson": "Copy JSON",
+    "copiedJson": "Copied",
+    "invalidGroup": "The selected group id is not valid. Choose a group from the list.",
+    "groupNotFound": "That group could not be found. Choose another group from the list."
   }
 }

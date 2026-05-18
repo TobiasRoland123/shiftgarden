@@ -7,6 +7,7 @@ import {
   text,
   time,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core"
 
@@ -71,6 +72,27 @@ export const groups = pgTable("groups", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
 })
+
+export const staffMemberGroups = pgTable(
+  "staff_member_groups",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    staffMemberId: uuid("staff_member_id")
+      .notNull()
+      .references(() => staffMembers.id, { onDelete: "cascade" }),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    index("staff_member_groups_staff_member_id_idx").on(table.staffMemberId),
+    index("staff_member_groups_group_id_idx").on(table.groupId),
+    uniqueIndex("staff_member_groups_staff_member_id_group_id_idx").on(
+      table.staffMemberId,
+      table.groupId
+    ),
+  ]
+)
 
 export const groupStaffRules = pgTable(
   "group_staff_rules",
