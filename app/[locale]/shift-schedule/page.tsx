@@ -1,19 +1,13 @@
-import { asc, eq, inArray } from "drizzle-orm"
+import { asc } from "drizzle-orm"
 import { getTranslations } from "next-intl/server"
 
 import { Button } from "@/components/ui/button"
 import { db } from "@/lib/db"
-import {
-  groups,
-  groupStaffRules,
-  staffMemberAvailability,
-  staffMemberGroups,
-  staffMembers,
-} from "@/lib/db/schema"
+import { groups } from "@/lib/db/schema"
+import { getScheduleInputForGroup } from "@/lib/shift-schedule/data"
+import { uuidPattern } from "@/lib/uuid"
 import { CopyJsonButton } from "./copy-json-button"
-
-const uuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+import { GenerateSchedulePlan } from "./generate-schedule-plan"
 
 type ShiftSchedulePageProps = {
   searchParams: Promise<{
@@ -34,76 +28,8 @@ export default async function ShiftSchedulePage({
     ? groupList.find((group) => group.id === groupId)
     : undefined
 
-  const linkedStaff = selectedGroup
-    ? await db
-        .select({
-          id: staffMembers.id,
-          firstName: staffMembers.firstName,
-          lastName: staffMembers.lastName,
-          role: staffMembers.role,
-          maxHoursPerWeek: staffMembers.maxHoursPerWeek,
-          active: staffMembers.active,
-        })
-        .from(staffMemberGroups)
-        .innerJoin(
-          staffMembers,
-          eq(staffMemberGroups.staffMemberId, staffMembers.id)
-        )
-        .where(eq(staffMemberGroups.groupId, selectedGroup.id))
-        .orderBy(asc(staffMembers.lastName), asc(staffMembers.firstName))
-    : []
-
-  const linkedStaffIds = linkedStaff.map((staffMember) => staffMember.id)
-  const availability =
-    linkedStaffIds.length > 0
-      ? await db
-          .select({
-            staffMemberId: staffMemberAvailability.staffMemberId,
-            dayOfWeek: staffMemberAvailability.dayOfWeek,
-            startAvailabilityTime:
-              staffMemberAvailability.startAvailabilityTime,
-            endAvailabilityTime: staffMemberAvailability.endAvailabilityTime,
-          })
-          .from(staffMemberAvailability)
-          .where(inArray(staffMemberAvailability.staffMemberId, linkedStaffIds))
-          .orderBy(
-            asc(staffMemberAvailability.dayOfWeek),
-            asc(staffMemberAvailability.startAvailabilityTime)
-          )
-      : []
-
-  const rules = selectedGroup
-    ? await db
-        .select({
-          dayOfWeek: groupStaffRules.dayOfWeek,
-          startTime: groupStaffRules.startTime,
-          endTime: groupStaffRules.endTime,
-          minPedagogs: groupStaffRules.minPedagogs,
-          minStaff: groupStaffRules.minStaff,
-        })
-        .from(groupStaffRules)
-        .where(eq(groupStaffRules.groupId, selectedGroup.id))
-        .orderBy(asc(groupStaffRules.dayOfWeek), asc(groupStaffRules.startTime))
-    : []
-
   const schedulePreview = selectedGroup
-    ? {
-        group: {
-          id: selectedGroup.id,
-          name: selectedGroup.name,
-        },
-        staff: linkedStaff.map((staffMember) => ({
-          ...staffMember,
-          availability: availability
-            .filter((entry) => entry.staffMemberId === staffMember.id)
-            .map((entry) => ({
-              dayOfWeek: entry.dayOfWeek,
-              startAvailabilityTime: entry.startAvailabilityTime,
-              endAvailabilityTime: entry.endAvailabilityTime,
-            })),
-        })),
-        rules,
-      }
+    ? await getScheduleInputForGroup(selectedGroup)
     : undefined
 
   const statusMessage = !hasGroupId
@@ -168,21 +94,33 @@ export default async function ShiftSchedulePage({
           </p>
         </section>
       ) : schedulePreview ? (
-        <section className="overflow-hidden rounded-lg border">
-          <div className="flex flex-col gap-3 border-b bg-muted/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="font-medium">{t("previewTitle")}</h2>
-            {schedulePreviewJson ? (
-              <CopyJsonButton
-                copiedLabel={t("copiedJson")}
-                copyLabel={t("copyJson")}
-                value={schedulePreviewJson}
-              />
-            ) : null}
-          </div>
-          <pre className="overflow-x-auto p-4 font-mono text-xs leading-6">
-            {schedulePreviewJson}
-          </pre>
-        </section>
+        <>
+          <GenerateSchedulePlan
+            copiedLabel={t("copiedJson")}
+            copyLabel={t("copyJson")}
+            groupId={schedulePreview.group.id}
+            staff={schedulePreview.staff.map((staffMember) => ({
+              id: staffMember.id,
+              name: `${staffMember.firstName} ${staffMember.lastName}`,
+            }))}
+          />
+
+          <section className="overflow-hidden rounded-lg border">
+            <div className="flex flex-col gap-3 border-b bg-muted/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="font-medium">{t("previewTitle")}</h2>
+              {schedulePreviewJson ? (
+                <CopyJsonButton
+                  copiedLabel={t("copiedJson")}
+                  copyLabel={t("copyJson")}
+                  value={schedulePreviewJson}
+                />
+              ) : null}
+            </div>
+            <pre className="overflow-x-auto p-4 font-mono text-xs leading-6">
+              {schedulePreviewJson}
+            </pre>
+          </section>
+        </>
       ) : null}
     </div>
   )

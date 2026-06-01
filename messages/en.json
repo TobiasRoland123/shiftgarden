@@ -163,6 +163,18 @@
     "previewTitle": "Schedule input JSON",
     "copyJson": "Copy JSON",
     "copiedJson": "Copied",
+    "generatePlan": "Generate plan",
+    "generatingPlan": "Generating...",
+    "generatedTitle": "AI schedule plan",
+    "generatedDescription": "Generate a preview plan from the selected group's staff, availability, and staffing rules.",
+    "generatedEmptyDescription": "Generate a plan to see validated AI output here.",
+    "generationErrorTitle": "Plan could not be generated",
+    "warningsTitle": "Warnings",
+    "staffMember": "Staff member",
+    "start": "Start",
+    "end": "End",
+    "noShifts": "No shifts for this day.",
+    "generatedJsonTitle": "Generated plan JSON",
     "invalidGroup": "The selected group id is not valid. Choose a group from the list.",
     "groupNotFound": "That group could not be found. Choose another group from the list."
   }

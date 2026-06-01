@@ -163,6 +163,18 @@
     "previewTitle": "Vagtplan input JSON",
     "copyJson": "Kopiér JSON",
     "copiedJson": "Kopieret",
+    "generatePlan": "Generér plan",
+    "generatingPlan": "Genererer...",
+    "generatedTitle": "AI-vagtplan",
+    "generatedDescription": "Generér et udkast fra den valgte gruppes personale, tilgængelighed og bemandingsregler.",
+    "generatedEmptyDescription": "Generér en plan for at se valideret AI-output her.",
+    "generationErrorTitle": "Planen kunne ikke genereres",
+    "warningsTitle": "Advarsler",
+    "staffMember": "Medarbejder",
+    "start": "Start",
+    "end": "Slut",
+    "noShifts": "Ingen vagter denne dag.",
+    "generatedJsonTitle": "Genereret plan JSON",
     "invalidGroup": "Det valgte gruppe-id er ikke gyldigt. Vælg en gruppe fra listen.",
     "groupNotFound": "Gruppen blev ikke fundet. Vælg en anden gruppe fra listen."
   }
