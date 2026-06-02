@@ -13,7 +13,7 @@ import {
 import { generatedScheduleSchema } from "@/lib/shift-schedule/schemas"
 import { uuidPattern } from "@/lib/uuid"
 
-const shiftScheduleModel = "openai/gpt-5.4"
+const shiftScheduleModel = "openai/gpt-5-mini"
 
 function getGenerateScheduleErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -27,7 +27,11 @@ function getGenerateScheduleErrorMessage(error: unknown) {
       return "AI Gateway authentication failed. Check that AI_GATEWAY_API_KEY in .env.local is valid, then restart pnpm dev."
     }
 
-    if (/model.*not found|not found.*model|unknown model|unsupported model|404/i.test(message)) {
+    if (
+      /model.*not found|not found.*model|unknown model|unsupported model|404/i.test(
+        message
+      )
+    ) {
       return `AI Gateway rejected the model "${shiftScheduleModel}". Choose a model that is enabled for your Vercel AI Gateway account.`
     }
 
