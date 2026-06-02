@@ -2,6 +2,7 @@ import { asc } from "drizzle-orm"
 import { getTranslations } from "next-intl/server"
 
 import { Button } from "@/components/ui/button"
+import { Link } from "@/i18n/navigation"
 import { db } from "@/lib/db"
 import { groups } from "@/lib/db/schema"
 import { getScheduleInputForGroup } from "@/lib/shift-schedule/data"
@@ -45,11 +46,18 @@ export default async function ShiftSchedulePage({
 
   return (
     <div className="flex min-h-svh flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-2xl font-medium tracking-normal">{t("title")}</h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-          {t("description")}
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-medium tracking-normal">
+            {t("title")}
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+            {t("description")}
+          </p>
+        </div>
+        <Button asChild variant="outline">
+          <Link href="/shift-schedule/plans">{t("savedPlans")}</Link>
+        </Button>
       </div>
 
       <section className="rounded-lg border p-4">

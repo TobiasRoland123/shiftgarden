@@ -157,6 +157,14 @@
     "chooseGroup": "Vælg gruppe",
     "groupPlaceholder": "Vælg en gruppe",
     "showJson": "Vis JSON",
+    "savedPlans": "Gemte planer",
+    "savedPlansDescription": "Åbn en tidligere genereret vagtplan.",
+    "backToShiftSchedule": "Tilbage til vagtplan",
+    "backToSavedPlans": "Tilbage til gemte planer",
+    "savedPlansEmptyTitle": "Ingen gemte planer endnu",
+    "savedPlansEmptyDescription": "Generér en vagtplan for at gemme den her.",
+    "createPlan": "Opret plan",
+    "savedPlanDetailDescription": "Gennemgå de gemte vagter og planens metadata.",
     "emptyTitle": "Ingen grupper endnu",
     "emptyDescription": "Vælg en gruppe for at se tilknyttet personale, tilgængelighed og bemandingsregler som JSON.",
     "noGroups": "Opret en gruppe, før du forhåndsviser vagtplandata.",
@@ -178,6 +186,20 @@
     "noShifts": "Ingen vagter denne dag.",
     "generatedJsonTitle": "Genereret plan JSON",
     "invalidGroup": "Det valgte gruppe-id er ikke gyldigt. Vælg en gruppe fra listen.",
-    "groupNotFound": "Gruppen blev ikke fundet. Vælg en anden gruppe fra listen."
+    "groupNotFound": "Gruppen blev ikke fundet. Vælg en anden gruppe fra listen.",
+    "table": {
+      "group": "Gruppe",
+      "createdAt": "Oprettet",
+      "model": "Model",
+      "warnings": "Advarsler",
+      "actions": "Handlinger",
+      "view": "Vis"
+    },
+    "detail": {
+      "group": "Gruppe",
+      "createdAt": "Oprettet",
+      "model": "Model",
+      "warnings": "Advarsler"
+    }
   }
 }
