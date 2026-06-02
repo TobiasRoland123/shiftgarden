@@ -1,6 +1,6 @@
 "use client"
 
-import { Sprout, Users } from "lucide-react"
+import { CalendarDays, Sprout, UserRoundCog, Users } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { Link, usePathname } from "@/i18n/navigation"
@@ -22,6 +22,16 @@ const navItems = [
     titleKey: "staff",
     href: "/staff",
     icon: Users,
+  },
+  {
+    titleKey: "groups",
+    href: "/groups",
+    icon: UserRoundCog,
+  },
+  {
+    titleKey: "shiftSchedule",
+    href: "/shift-schedule",
+    icon: CalendarDays,
   },
 ] as const
 
