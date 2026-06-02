@@ -80,7 +80,7 @@ const generatedScheduleSchema = z.object({
   warnings: z
     .array(z.string())
     .describe(
-      "Unmet constraints, tradeoffs, or notes about the generated plan."
+      "Only actual scheduling problems or unmet constraints. Use an empty array when the schedule satisfies the hard constraints."
     ),
 })
 

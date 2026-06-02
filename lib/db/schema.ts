@@ -2,6 +2,7 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -110,5 +111,46 @@ export const groupStaffRules = pgTable(
   (table) => [
     index("group_staff_rules_group_id_idx").on(table.groupId),
     index("group_staff_rules_day_of_week_idx").on(table.dayOfWeek),
+  ]
+)
+
+export const shiftSchedulePlans = pgTable(
+  "shift_schedule_plans",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    inputJson: jsonb("input_json").notNull(),
+    warnings: jsonb("warnings").$type<string[]>().notNull(),
+    model: text("model").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("shift_schedule_plans_group_id_idx").on(table.groupId),
+    index("shift_schedule_plans_created_at_idx").on(table.createdAt),
+  ]
+)
+
+export const shiftScheduleShifts = pgTable(
+  "shift_schedule_shifts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => shiftSchedulePlans.id, { onDelete: "cascade" }),
+    staffMemberId: uuid("staff_member_id")
+      .notNull()
+      .references(() => staffMembers.id, { onDelete: "cascade" }),
+    dayOfWeek: dayOfWeek("day_of_week").notNull(),
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+  },
+  (table) => [
+    index("shift_schedule_shifts_plan_id_idx").on(table.planId),
+    index("shift_schedule_shifts_staff_member_id_idx").on(table.staffMemberId),
+    index("shift_schedule_shifts_day_of_week_idx").on(table.dayOfWeek),
   ]
 )

@@ -2,8 +2,14 @@
 
 import { generateText, Output } from "ai"
 
+import { db } from "@/lib/db"
+import { shiftSchedulePlans, shiftScheduleShifts } from "@/lib/db/schema"
 import { getScheduleInputByGroupId } from "@/lib/shift-schedule/data"
 import { shiftSchedulePrompt } from "@/lib/shift-schedule/prompt"
+import {
+  buildShiftSchedulePlanInsertValues,
+  buildShiftScheduleShiftInsertValues,
+} from "@/lib/shift-schedule/save"
 import { generatedScheduleSchema } from "@/lib/shift-schedule/schemas"
 import { uuidPattern } from "@/lib/uuid"
 
@@ -21,8 +27,12 @@ function getGenerateScheduleErrorMessage(error: unknown) {
       return "AI Gateway authentication failed. Check that AI_GATEWAY_API_KEY in .env.local is valid, then restart pnpm dev."
     }
 
-    if (/model|not found|404|unsupported/i.test(message)) {
+    if (/model.*not found|not found.*model|unknown model|unsupported model|404/i.test(message)) {
       return `AI Gateway rejected the model "${shiftScheduleModel}". Choose a model that is enabled for your Vercel AI Gateway account.`
+    }
+
+    if (/failed query|database|relation .* does not exist/i.test(message)) {
+      return "The AI generated a plan, but it could not be saved to the database. Check that the latest database migrations have been applied."
     }
 
     return `AI Gateway error: ${message}`
@@ -67,10 +77,37 @@ async function generateSchedulePlan(
         schema: generatedScheduleSchema,
       }),
     })
-    const plan = generatedScheduleSchema.parse(result.output)
+    const generatedPlan = generatedScheduleSchema.parse(result.output)
+    const plan = {
+      ...generatedPlan,
+      groupId: scheduleInput.group.id,
+    }
+    const planId = await db.transaction(async (tx) => {
+      const [savedPlan] = await tx
+        .insert(shiftSchedulePlans)
+        .values(
+          buildShiftSchedulePlanInsertValues({
+            model: shiftScheduleModel,
+            plan,
+            scheduleInput,
+          })
+        )
+        .returning({ id: shiftSchedulePlans.id })
+      const shifts = buildShiftScheduleShiftInsertValues({
+        plan,
+        planId: savedPlan.id,
+      })
+
+      if (shifts.length > 0) {
+        await tx.insert(shiftScheduleShifts).values(shifts)
+      }
+
+      return savedPlan.id
+    })
 
     return {
       plan,
+      planId,
       planJson: JSON.stringify(plan, null, 2),
     }
   } catch (error) {

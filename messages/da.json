@@ -169,6 +169,8 @@
     "generatedDescription": "Generér et udkast fra den valgte gruppes personale, tilgængelighed og bemandingsregler.",
     "generatedEmptyDescription": "Generér en plan for at se valideret AI-output her.",
     "generationErrorTitle": "Planen kunne ikke genereres",
+    "savedTitle": "Plan gemt",
+    "savedDescription": "Gemt som plan {planId}.",
     "warningsTitle": "Advarsler",
     "staffMember": "Medarbejder",
     "start": "Start",

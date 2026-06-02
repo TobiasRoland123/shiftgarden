@@ -169,6 +169,8 @@
     "generatedDescription": "Generate a preview plan from the selected group's staff, availability, and staffing rules.",
     "generatedEmptyDescription": "Generate a plan to see validated AI output here.",
     "generationErrorTitle": "Plan could not be generated",
+    "savedTitle": "Plan saved",
+    "savedDescription": "Saved as plan {planId}.",
     "warningsTitle": "Warnings",
     "staffMember": "Staff member",
     "start": "Start",

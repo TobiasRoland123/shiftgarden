@@ -51,6 +51,9 @@ Return only valid JSON with this structure:
 }
 
 Important:
-If a valid schedule cannot be created, return the best possible schedule and explain the unmet constraints in the warnings array.`
+Use warnings only for actual problems that require attention, such as unmet coverage, missing pedagog coverage, staff scheduled outside availability, overlapping shifts, or exceeded max weekly hours.
+If the schedule satisfies the hard constraints, return an empty warnings array.
+Do not put confirmations, summaries, balanced-hours notes, or "everything is okay" messages in warnings.
+If a valid schedule cannot be created, return the best possible schedule and explain only the unmet constraints in the warnings array.`
 
 export { shiftSchedulePrompt }

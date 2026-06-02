@@ -23,6 +23,7 @@ type GenerateSchedulePlanProps = {
 type GenerateSchedulePlanState = {
   error?: string
   plan?: GeneratedSchedule
+  planId?: string
   planJson?: string
 }
 
@@ -77,6 +78,7 @@ function GenerateSchedulePlan({
             copyLabel={copyLabel}
             copiedLabel={copiedLabel}
             plan={state.plan}
+            planId={state.planId}
             planJson={state.planJson}
             staffById={staffById}
           />
@@ -94,12 +96,14 @@ function GeneratedPlanView({
   copiedLabel,
   copyLabel,
   plan,
+  planId,
   planJson,
   staffById,
 }: {
   copiedLabel: string
   copyLabel: string
   plan: GeneratedSchedule
+  planId?: string
   planJson?: string
   staffById: Map<string, string>
 }) {
@@ -108,6 +112,13 @@ function GeneratedPlanView({
 
   return (
     <div className="grid gap-4">
+      {planId ? (
+        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-950 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-100">
+          <p className="font-medium">{t("savedTitle")}</p>
+          <p className="mt-1">{t("savedDescription", { planId })}</p>
+        </div>
+      ) : null}
+
       {plan.warnings.length > 0 ? (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
           <h3 className="font-medium">{t("warningsTitle")}</h3>
