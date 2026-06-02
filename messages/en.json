@@ -157,6 +157,14 @@
     "chooseGroup": "Choose group",
     "groupPlaceholder": "Select a group",
     "showJson": "Show JSON",
+    "savedPlans": "Saved plans",
+    "savedPlansDescription": "Open a previously generated shift schedule plan.",
+    "backToShiftSchedule": "Back to shift schedule",
+    "backToSavedPlans": "Back to saved plans",
+    "savedPlansEmptyTitle": "No saved plans yet",
+    "savedPlansEmptyDescription": "Generate a shift schedule plan to save it here.",
+    "createPlan": "Create plan",
+    "savedPlanDetailDescription": "Review the saved shifts and plan metadata.",
     "emptyTitle": "No groups yet",
     "emptyDescription": "Choose a group to preview linked staff, availability, and staff rules as JSON.",
     "noGroups": "Create a group before previewing shift schedule data.",
@@ -178,6 +186,20 @@
     "noShifts": "No shifts for this day.",
     "generatedJsonTitle": "Generated plan JSON",
     "invalidGroup": "The selected group id is not valid. Choose a group from the list.",
-    "groupNotFound": "That group could not be found. Choose another group from the list."
+    "groupNotFound": "That group could not be found. Choose another group from the list.",
+    "table": {
+      "group": "Group",
+      "createdAt": "Created",
+      "model": "Model",
+      "warnings": "Warnings",
+      "actions": "Actions",
+      "view": "View"
+    },
+    "detail": {
+      "group": "Group",
+      "createdAt": "Created",
+      "model": "Model",
+      "warnings": "Warnings"
+    }
   }
 }
