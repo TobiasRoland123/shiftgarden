@@ -4,6 +4,10 @@ import { generateText, Output } from "ai"
 
 import { db } from "@/lib/db"
 import { shiftSchedulePlans, shiftScheduleShifts } from "@/lib/db/schema"
+import {
+  formatValidationFeedbackForRetry,
+  formatValidationIssuesForUser,
+} from "@/lib/shift-schedule/action-validation"
 import { getScheduleInputByGroupId } from "@/lib/shift-schedule/data"
 import { shiftSchedulePrompt } from "@/lib/shift-schedule/prompt"
 import {
@@ -11,6 +15,9 @@ import {
   buildShiftScheduleShiftInsertValues,
 } from "@/lib/shift-schedule/save"
 import { generatedScheduleSchema } from "@/lib/shift-schedule/schemas"
+import type { GeneratedSchedule } from "@/lib/shift-schedule/schemas"
+import { validateGeneratedSchedule } from "@/lib/shift-schedule/validate-generated"
+import { validateScheduleInputSupport } from "@/lib/shift-schedule/validate-input"
 import { uuidPattern } from "@/lib/uuid"
 
 const shiftScheduleModel = "openai/gpt-5-mini"
@@ -45,6 +52,23 @@ function getGenerateScheduleErrorMessage(error: unknown) {
   return "The AI schedule could not be generated because AI Gateway returned an unknown error."
 }
 
+async function generateParsedSchedulePlan({
+  prompt,
+}: {
+  prompt: string
+}): Promise<GeneratedSchedule> {
+  const result = await generateText({
+    model: shiftScheduleModel,
+    system: shiftSchedulePrompt,
+    prompt,
+    output: Output.object({
+      schema: generatedScheduleSchema,
+    }),
+  })
+
+  return generatedScheduleSchema.parse(result.output)
+}
+
 async function generateSchedulePlan(
   _previousState: unknown,
   formData: FormData
@@ -65,6 +89,14 @@ async function generateSchedulePlan(
     }
   }
 
+  const inputSupportValidation = validateScheduleInputSupport(scheduleInput)
+
+  if (!inputSupportValidation.valid) {
+    return {
+      error: formatValidationIssuesForUser(inputSupportValidation),
+    }
+  }
+
   if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL_OIDC_TOKEN) {
     return {
       error:
@@ -73,19 +105,37 @@ async function generateSchedulePlan(
   }
 
   try {
-    const result = await generateText({
-      model: shiftScheduleModel,
-      system: shiftSchedulePrompt,
-      prompt: `Schedule input JSON:\n${JSON.stringify(scheduleInput, null, 2)}`,
-      output: Output.object({
-        schema: generatedScheduleSchema,
-      }),
+    const basePrompt = `Schedule input JSON:\n${JSON.stringify(scheduleInput, null, 2)}`
+    const firstPlan = await generateParsedSchedulePlan({
+      prompt: basePrompt,
     })
-    const generatedPlan = generatedScheduleSchema.parse(result.output)
-    const plan = {
-      ...generatedPlan,
-      groupId: scheduleInput.group.id,
+    const firstValidation = validateGeneratedSchedule({
+      scheduleInput,
+      generatedSchedule: firstPlan,
+    })
+    let plan = firstPlan
+
+    if (!firstValidation.valid) {
+      const retryPlan = await generateParsedSchedulePlan({
+        prompt: `${basePrompt}
+
+The previous generated schedule failed deterministic validation. Return a corrected full JSON schedule. Fix these validation issues:
+${formatValidationFeedbackForRetry(firstValidation)}`,
+      })
+      const retryValidation = validateGeneratedSchedule({
+        scheduleInput,
+        generatedSchedule: retryPlan,
+      })
+
+      if (!retryValidation.valid) {
+        return {
+          error: formatValidationIssuesForUser(retryValidation),
+        }
+      }
+
+      plan = retryPlan
     }
+
     const planId = await db.transaction(async (tx) => {
       const [savedPlan] = await tx
         .insert(shiftSchedulePlans)
