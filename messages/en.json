@@ -148,7 +148,9 @@
       "start": "Start",
       "end": "End",
       "minPedagogs": "Min pedagogs",
-      "minStaff": "Min staff"
+      "minStaff": "Min staff",
+      "totalCapacityShortfall": "This group is short {hours} staff hours this week based on current staffing rules and linked staff capacity.",
+      "pedagogCapacityShortfall": "This group is short {hours} pedagog hours this week based on current staffing rules and linked pedagog staff capacity."
     }
   },
   "shiftSchedule": {

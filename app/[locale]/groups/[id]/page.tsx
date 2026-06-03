@@ -11,7 +11,12 @@ import {
   staffMemberGroups,
   staffMembers,
 } from "@/lib/db/schema"
-import { compareGroupStaffRules, formatWeekday } from "@/lib/groups"
+import {
+  calculateGroupCapacityShortfall,
+  compareGroupStaffRules,
+  formatCapacityHours,
+  formatWeekday,
+} from "@/lib/groups"
 import { formatStaffRole } from "@/lib/staff"
 import { linkGroupToStaff, unlinkGroupFromStaff } from "./actions"
 
@@ -53,6 +58,7 @@ export default async function GroupDetailPage({
       firstName: staffMembers.firstName,
       lastName: staffMembers.lastName,
       role: staffMembers.role,
+      maxHoursPerWeek: staffMembers.maxHoursPerWeek,
       active: staffMembers.active,
     })
     .from(staffMemberGroups)
@@ -76,6 +82,7 @@ export default async function GroupDetailPage({
   )
 
   const sortedRules = rules.toSorted(compareGroupStaffRules)
+  const capacityShortfall = calculateGroupCapacityShortfall(rules, linkedStaff)
 
   return (
     <div className="flex min-h-svh flex-col gap-6 p-6">
@@ -94,6 +101,22 @@ export default async function GroupDetailPage({
             {t("detail.subtitle")}
           </p>
         </div>
+        {capacityShortfall.totalShortfallHours > 0 ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
+            {t("detail.totalCapacityShortfall", {
+              hours: formatCapacityHours(capacityShortfall.totalShortfallHours),
+            })}
+          </div>
+        ) : null}
+        {capacityShortfall.pedagogShortfallHours > 0 ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
+            {t("detail.pedagogCapacityShortfall", {
+              hours: formatCapacityHours(
+                capacityShortfall.pedagogShortfallHours
+              ),
+            })}
+          </div>
+        ) : null}
       </div>
 
       <section className="rounded-lg border p-4">
