@@ -148,7 +148,9 @@
       "start": "Start",
       "end": "Slut",
       "minPedagogs": "Min. pædagoger",
-      "minStaff": "Min. personale"
+      "minStaff": "Min. personale",
+      "totalCapacityShortfall": "Denne gruppe mangler {hours} personaletimer i denne uge baseret på de nuværende bemandingsregler og tilknyttet personalekapacitet.",
+      "pedagogCapacityShortfall": "Denne gruppe mangler {hours} pædagogtimer i denne uge baseret på de nuværende bemandingsregler og tilknyttet pædagogkapacitet."
     }
   },
   "shiftSchedule": {
