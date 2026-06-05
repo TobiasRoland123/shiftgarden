@@ -304,7 +304,7 @@ function GroupForm({ action = createGroup, initialValues }: GroupFormProps) {
                         <Input
                           name={`${day}-${index}-minPedagogs`}
                           type="number"
-                          min={1}
+                          min={0}
                           step={1}
                           inputMode="numeric"
                           defaultValue={rule.minPedagogs}

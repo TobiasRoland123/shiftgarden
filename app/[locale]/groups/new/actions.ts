@@ -81,12 +81,12 @@ function getGroupStaffRuleRows(formData: FormData) {
       const minPedagogs = getPositiveWholeNumber(minPedagogsValue)
       const minStaff = getPositiveWholeNumber(minStaffValue)
 
-      if (minPedagogs === null || minStaff === null) {
+      if (minStaff === null) {
         errors.push("Minimum staff counts must be positive whole numbers.")
         continue
       }
 
-      if (minPedagogs > minStaff) {
+      if (minPedagogs && minPedagogs > minStaff) {
         errors.push("Minimum pedagogs cannot be higher than minimum staff.")
         continue
       }
@@ -99,7 +99,7 @@ function getGroupStaffRuleRows(formData: FormData) {
         dayOfWeek: day,
         startTime,
         endTime,
-        minPedagogs,
+        minPedagogs: minPedagogs ? minPedagogs : 0,
         minStaff,
       })
     }
