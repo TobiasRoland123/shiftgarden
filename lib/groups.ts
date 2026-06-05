@@ -13,6 +13,11 @@ type GroupStaffRule = {
   startTime: string
 }
 
+type GroupedStaffRules<T extends GroupStaffRule> = {
+  dayOfWeek: DayOfWeek
+  rules: T[]
+}
+
 type GroupTranslationKey = `weekday.${DayOfWeek}`
 type GroupTranslator = (key: GroupTranslationKey) => string
 type GroupCapacityStaffingRule = {
@@ -46,6 +51,28 @@ function compareGroupStaffRules(left: GroupStaffRule, right: GroupStaffRule) {
   }
 
   return left.startTime.localeCompare(right.startTime)
+}
+
+function groupStaffRulesByWeekday<T extends GroupStaffRule>(
+  rules: readonly T[]
+): GroupedStaffRules<T>[] {
+  return rules
+    .toSorted(compareGroupStaffRules)
+    .reduce<GroupedStaffRules<T>[]>((groups, rule) => {
+      const currentGroup = groups.at(-1)
+
+      if (currentGroup?.dayOfWeek === rule.dayOfWeek) {
+        currentGroup.rules.push(rule)
+        return groups
+      }
+
+      groups.push({
+        dayOfWeek: rule.dayOfWeek,
+        rules: [rule],
+      })
+
+      return groups
+    }, [])
 }
 
 function getTimeOfDayMinutes(time: string) {
@@ -146,6 +173,7 @@ export {
   compareGroupStaffRules,
   formatCapacityHours,
   formatWeekday,
+  groupStaffRulesByWeekday,
   getStaffingRuleDurationMinutes,
   isWeekdayAvailability,
   weekdayAvailability,
@@ -155,6 +183,7 @@ export type {
   GroupCapacityShortfall,
   GroupCapacityStaffingRule,
   GroupCapacityStaffMember,
+  GroupedStaffRules,
   GroupTranslator,
   WeekdayAvailability,
 }

@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest"
 
+import type { DayOfWeek } from "./staff"
+
 import {
   calculateGroupCapacityShortfall,
   calculateLinkedActivePedagogCapacityMinutes,
   calculateLinkedActiveStaffCapacityMinutes,
   calculateWeeklyPedagogDemandMinutes,
   calculateWeeklyStaffDemandMinutes,
+  groupStaffRulesByWeekday,
   type GroupCapacityStaffingRule,
   type GroupCapacityStaffMember,
 } from "./groups"
@@ -29,6 +32,16 @@ function staffMember(
     active: true,
     role: "assistant",
     maxHoursPerWeek: 37,
+    ...overrides,
+  }
+}
+
+function displayRule(
+  overrides: { dayOfWeek?: DayOfWeek; startTime?: string } = {}
+) {
+  return {
+    dayOfWeek: "monday" as const,
+    startTime: "06:00",
     ...overrides,
   }
 }
@@ -131,5 +144,43 @@ describe("group capacity calculations", () => {
 
     expect(shortfall.totalShortfallHours).toBe(0.25)
     expect(shortfall.pedagogShortfallHours).toBe(0.25)
+  })
+})
+
+describe("group staffing rule display grouping", () => {
+  it("groups multiple rules on the same weekday and sorts them by start time", () => {
+    const groups = groupStaffRulesByWeekday([
+      displayRule({ dayOfWeek: "monday", startTime: "08:30" }),
+      displayRule({ dayOfWeek: "monday", startTime: "07:00" }),
+      displayRule({ dayOfWeek: "monday", startTime: "08:00" }),
+    ])
+
+    expect(groups).toHaveLength(1)
+    expect(groups[0]?.dayOfWeek).toBe("monday")
+    expect(groups[0]?.rules.map((rule) => rule.startTime)).toEqual([
+      "07:00",
+      "08:00",
+      "08:30",
+    ])
+  })
+
+  it("groups rules across multiple weekdays in weekday order and hides empty weekdays", () => {
+    const groups = groupStaffRulesByWeekday([
+      displayRule({ dayOfWeek: "wednesday", startTime: "08:00" }),
+      displayRule({ dayOfWeek: "monday", startTime: "09:00" }),
+      displayRule({ dayOfWeek: "tuesday", startTime: "07:30" }),
+      displayRule({ dayOfWeek: "monday", startTime: "07:00" }),
+    ])
+
+    expect(groups.map((group) => group.dayOfWeek)).toEqual([
+      "monday",
+      "tuesday",
+      "wednesday",
+    ])
+    expect(groups.map((group) => group.rules.length)).toEqual([2, 1, 1])
+    expect(groups[0]?.rules.map((rule) => rule.startTime)).toEqual([
+      "07:00",
+      "09:00",
+    ])
   })
 })

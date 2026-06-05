@@ -13,9 +13,9 @@ import {
 } from "@/lib/db/schema"
 import {
   calculateGroupCapacityShortfall,
-  compareGroupStaffRules,
   formatCapacityHours,
   formatWeekday,
+  groupStaffRulesByWeekday,
 } from "@/lib/groups"
 import { formatStaffRole } from "@/lib/staff"
 import { linkGroupToStaff, unlinkGroupFromStaff } from "./actions"
@@ -81,7 +81,7 @@ export default async function GroupDetailPage({
     (staffMember) => !linkedStaffIds.has(staffMember.id)
   )
 
-  const sortedRules = rules.toSorted(compareGroupStaffRules)
+  const rulesByWeekday = groupStaffRulesByWeekday(rules)
   const capacityShortfall = calculateGroupCapacityShortfall(rules, linkedStaff)
 
   return (
@@ -222,40 +222,50 @@ export default async function GroupDetailPage({
 
       <section className="rounded-lg border p-4">
         <h2 className="font-medium">{t("detail.rules")}</h2>
-        {sortedRules.length === 0 ? (
+        {rulesByWeekday.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">
             {t("detail.noRules")}
           </p>
         ) : (
-          <div className="mt-4 overflow-hidden rounded-lg border">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b bg-muted/50 text-xs text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3 font-medium">{t("detail.day")}</th>
-                  <th className="px-4 py-3 font-medium">{t("detail.start")}</th>
-                  <th className="px-4 py-3 font-medium">{t("detail.end")}</th>
-                  <th className="px-4 py-3 font-medium">
-                    {t("detail.minPedagogs")}
-                  </th>
-                  <th className="px-4 py-3 font-medium">
-                    {t("detail.minStaff")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {sortedRules.map((rule) => (
-                  <tr key={rule.id}>
-                    <td className="px-4 py-3">
-                      {formatWeekday(rule.dayOfWeek, tStaff)}
-                    </td>
-                    <td className="px-4 py-3">{rule.startTime}</td>
-                    <td className="px-4 py-3">{rule.endTime}</td>
-                    <td className="px-4 py-3">{rule.minPedagogs}</td>
-                    <td className="px-4 py-3">{rule.minStaff}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-4 space-y-4">
+            {rulesByWeekday.map((rulesGroup) => (
+              <div
+                key={rulesGroup.dayOfWeek}
+                className="overflow-hidden rounded-lg border"
+              >
+                <h3 className="border-b bg-muted/50 px-4 py-3 text-sm font-medium">
+                  {formatWeekday(rulesGroup.dayOfWeek, tStaff)}
+                </h3>
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b text-xs text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">
+                        {t("detail.start")}
+                      </th>
+                      <th className="px-4 py-3 font-medium">
+                        {t("detail.end")}
+                      </th>
+                      <th className="px-4 py-3 font-medium">
+                        {t("detail.minPedagogs")}
+                      </th>
+                      <th className="px-4 py-3 font-medium">
+                        {t("detail.minStaff")}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {rulesGroup.rules.map((rule) => (
+                      <tr key={rule.id}>
+                        <td className="px-4 py-3">{rule.startTime}</td>
+                        <td className="px-4 py-3">{rule.endTime}</td>
+                        <td className="px-4 py-3">{rule.minPedagogs}</td>
+                        <td className="px-4 py-3">{rule.minStaff}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
           </div>
         )}
       </section>
