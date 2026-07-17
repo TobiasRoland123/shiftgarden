@@ -20,7 +20,7 @@ import { validateGeneratedSchedule } from "@/lib/shift-schedule/validate-generat
 import { validateScheduleInputSupport } from "@/lib/shift-schedule/validate-input"
 import { uuidPattern } from "@/lib/uuid"
 
-const shiftScheduleModel = "openai/gpt-5-mini"
+const shiftScheduleModel = "openai/gpt-5.6-luna"
 
 function getGenerateScheduleErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -64,6 +64,11 @@ async function generateParsedSchedulePlan({
     output: Output.object({
       schema: generatedScheduleSchema,
     }),
+    providerOptions: {
+      openai: {
+        reasoningEffort: "medium",
+      },
+    },
   })
 
   return generatedScheduleSchema.parse(result.output)
