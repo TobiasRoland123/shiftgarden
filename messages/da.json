@@ -87,6 +87,7 @@
       "allGroupsLinked": "Alle grupper er allerede tilknyttet.",
       "actions": "Handlinger",
       "availability": "Tilgængelighed",
+      "availabilityHoursMismatch": "Tilgængelige timer udgør i alt {availableHours} t., men maks. timer pr. uge er {maxHours} t.",
       "noAvailability": "Der er ikke tilføjet tilgængelighed.",
       "day": "Dag",
       "start": "Start",

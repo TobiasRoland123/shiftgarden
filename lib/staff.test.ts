@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import { buildAvailableStaffOptions, type StaffGroupRow } from "./staff"
+import {
+  buildAvailableStaffOptions,
+  getAvailabilityHoursMismatch,
+  type StaffAvailabilityInterval,
+  type StaffGroupRow,
+} from "./staff"
 
 function row(overrides: Partial<StaffGroupRow> = {}): StaffGroupRow {
   return {
@@ -58,5 +63,26 @@ describe("buildAvailableStaffOptions", () => {
         ],
       },
     ])
+  })
+})
+
+describe("getAvailabilityHoursMismatch", () => {
+  const availability: StaffAvailabilityInterval[] = [
+    { startAvailabilityTime: "06:00", endAvailabilityTime: "17:00" },
+    { startAvailabilityTime: "06:00", endAvailabilityTime: "17:00" },
+    { startAvailabilityTime: "06:00", endAvailabilityTime: "17:00" },
+    { startAvailabilityTime: "06:00", endAvailabilityTime: "14:00" },
+    { startAvailabilityTime: "06:00", endAvailabilityTime: "17:00" },
+  ]
+
+  it("returns the available and maximum hours when they differ", () => {
+    expect(getAvailabilityHoursMismatch(availability, 70)).toEqual({
+      availableHours: 52,
+      maxHours: 70,
+    })
+  })
+
+  it("returns no mismatch when available hours equal maximum hours", () => {
+    expect(getAvailabilityHoursMismatch(availability, 52)).toBeNull()
   })
 })

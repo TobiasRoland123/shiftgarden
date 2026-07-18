@@ -42,6 +42,16 @@ type StaffOption = {
   groups: { id: string; name: string }[]
 }
 
+type StaffAvailabilityInterval = {
+  startAvailabilityTime: string
+  endAvailabilityTime: string
+}
+
+type AvailabilityHoursMismatch = {
+  availableHours: number
+  maxHours: number
+}
+
 function isStaffRole(value: string): value is StaffRole {
   return staffRoles.includes(value as StaffRole)
 }
@@ -96,11 +106,37 @@ function buildAvailableStaffOptions(
   }))
 }
 
+function getAvailabilityHoursMismatch(
+  availability: StaffAvailabilityInterval[],
+  maxHoursPerWeek: number
+): AvailabilityHoursMismatch | null {
+  const availableMinutes = availability.reduce((total, interval) => {
+    const [startHours = "0", startMinutes = "0"] =
+      interval.startAvailabilityTime.split(":")
+    const [endHours = "0", endMinutes = "0"] =
+      interval.endAvailabilityTime.split(":")
+    const start = Number(startHours) * 60 + Number(startMinutes)
+    const end = Number(endHours) * 60 + Number(endMinutes)
+
+    return total + end - start
+  }, 0)
+
+  if (availableMinutes === maxHoursPerWeek * 60) {
+    return null
+  }
+
+  return {
+    availableHours: availableMinutes / 60,
+    maxHours: maxHoursPerWeek,
+  }
+}
+
 export {
   daySortOrder,
   buildAvailableStaffOptions,
   formatStaffRole,
   formatWeekday,
+  getAvailabilityHoursMismatch,
   isStaffRole,
   isWeekdayAvailability,
   daysOfWeek,
@@ -109,4 +145,9 @@ export {
 }
 
 export type { DayOfWeek, StaffRole, WeekdayAvailability }
-export type { StaffGroupRow, StaffOption }
+export type {
+  AvailabilityHoursMismatch,
+  StaffAvailabilityInterval,
+  StaffGroupRow,
+  StaffOption,
+}
