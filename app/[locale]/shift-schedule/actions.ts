@@ -3,14 +3,17 @@
 import { generateText, Output } from "ai"
 
 import { db } from "@/lib/db"
-import { shiftSchedulePlans, shiftScheduleShifts } from "@/lib/db/schema"
 import {
-  formatValidationFeedbackForRetry,
-  formatValidationIssuesForUser,
-} from "@/lib/shift-schedule/action-validation"
+  shiftScheduleGenerationAttempts,
+  shiftSchedulePlans,
+  shiftScheduleShifts,
+} from "@/lib/db/schema"
+import { formatValidationIssuesForUser } from "@/lib/shift-schedule/action-validation"
 import { getScheduleInputByGroupId } from "@/lib/shift-schedule/data"
+import { generateWithValidationRetry } from "@/lib/shift-schedule/generate-with-retry"
 import { shiftSchedulePrompt } from "@/lib/shift-schedule/prompt"
 import {
+  buildShiftScheduleGenerationAttemptInsertValues,
   buildShiftSchedulePlanInsertValues,
   buildShiftScheduleShiftInsertValues,
 } from "@/lib/shift-schedule/save"
@@ -111,35 +114,33 @@ async function generateSchedulePlan(
 
   try {
     const basePrompt = `Schedule input JSON:\n${JSON.stringify(scheduleInput, null, 2)}`
-    const firstPlan = await generateParsedSchedulePlan({
-      prompt: basePrompt,
-    })
-    const firstValidation = validateGeneratedSchedule({
+    const generationId = crypto.randomUUID()
+    const attempt = await generateWithValidationRetry({
+      basePrompt,
+      generate: (prompt) => generateParsedSchedulePlan({ prompt }),
       scheduleInput,
-      generatedSchedule: firstPlan,
+      validate: validateGeneratedSchedule,
+      onValidationFailed: async ({ attemptNumber, plan, validation }) => {
+        await db.insert(shiftScheduleGenerationAttempts).values(
+          buildShiftScheduleGenerationAttemptInsertValues({
+            attemptNumber,
+            generationId,
+            model: shiftScheduleModel,
+            plan,
+            scheduleInput,
+            validation,
+          })
+        )
+      },
     })
-    let plan = firstPlan
 
-    if (!firstValidation.valid) {
-      const retryPlan = await generateParsedSchedulePlan({
-        prompt: `${basePrompt}
-
-The previous generated schedule failed deterministic validation. Return a corrected full JSON schedule. Fix these validation issues:
-${formatValidationFeedbackForRetry(firstValidation)}`,
-      })
-      const retryValidation = validateGeneratedSchedule({
-        scheduleInput,
-        generatedSchedule: retryPlan,
-      })
-
-      if (!retryValidation.valid) {
-        return {
-          error: formatValidationIssuesForUser(retryValidation),
-        }
+    if (!attempt.validation.valid) {
+      return {
+        error: formatValidationIssuesForUser(attempt.validation),
       }
-
-      plan = retryPlan
     }
+
+    const plan = attempt.plan
 
     const planId = await db.transaction(async (tx) => {
       const [savedPlan] = await tx
@@ -160,6 +161,18 @@ ${formatValidationFeedbackForRetry(firstValidation)}`,
       if (shifts.length > 0) {
         await tx.insert(shiftScheduleShifts).values(shifts)
       }
+
+      await tx.insert(shiftScheduleGenerationAttempts).values(
+        buildShiftScheduleGenerationAttemptInsertValues({
+          acceptedPlanId: savedPlan.id,
+          attemptNumber: attempt.attemptNumber,
+          generationId,
+          model: shiftScheduleModel,
+          plan,
+          scheduleInput,
+          validation: attempt.validation,
+        })
+      )
 
       return savedPlan.id
     })
