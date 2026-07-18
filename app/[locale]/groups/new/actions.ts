@@ -7,7 +7,11 @@ import { redirect } from "@/i18n/navigation"
 import { defaultLocale, locales, type Locale } from "@/i18n/routing"
 import { db } from "@/lib/db"
 import { groups, groupStaffRules } from "@/lib/db/schema"
-import { isWeekdayAvailability, weekdayAvailability } from "@/lib/groups"
+import {
+  isWeekdayAvailability,
+  normalizeGroupName,
+  weekdayAvailability,
+} from "@/lib/groups"
 
 type GroupFormState = {
   errors: string[]
@@ -113,7 +117,7 @@ async function createGroup(
   formData: FormData
 ): Promise<GroupFormState> {
   const locale = getLocale(formData)
-  const name = getString(formData, "name")
+  const name = normalizeGroupName(getString(formData, "name"))
   const rules = getGroupStaffRuleRows(formData)
   const errors = [...rules.errors]
 
@@ -154,7 +158,7 @@ async function updateGroup(
 ): Promise<GroupFormState> {
   const locale = getLocale(formData)
   const groupId = getString(formData, "groupId")
-  const name = getString(formData, "name")
+  const name = normalizeGroupName(getString(formData, "name"))
   const rules = getGroupStaffRuleRows(formData)
   const errors = [...rules.errors]
 
