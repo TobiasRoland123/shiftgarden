@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server"
 import { asc, eq } from "drizzle-orm"
 
 import { Link } from "@/i18n/navigation"
+import { StaffSelect } from "@/components/staff-select"
 import { Button } from "@/components/ui/button"
 import { db } from "@/lib/db"
 import {
@@ -17,7 +18,7 @@ import {
   formatWeekday,
   groupStaffRulesByWeekday,
 } from "@/lib/groups"
-import { formatStaffRole } from "@/lib/staff"
+import { buildAvailableStaffOptions, formatStaffRole } from "@/lib/staff"
 import { linkGroupToStaff, unlinkGroupFromStaff } from "./actions"
 
 const uuidPattern =
@@ -69,16 +70,32 @@ export default async function GroupDetailPage({
     .where(eq(staffMemberGroups.groupId, group.id))
     .orderBy(asc(staffMembers.lastName), asc(staffMembers.firstName))
 
-  const activeStaff = await db
-    .select()
+  const activeStaffGroupRows = await db
+    .select({
+      staffMemberId: staffMembers.id,
+      firstName: staffMembers.firstName,
+      lastName: staffMembers.lastName,
+      groupId: groups.id,
+      groupName: groups.name,
+    })
     .from(staffMembers)
+    .leftJoin(
+      staffMemberGroups,
+      eq(staffMemberGroups.staffMemberId, staffMembers.id)
+    )
+    .leftJoin(groups, eq(staffMemberGroups.groupId, groups.id))
     .where(eq(staffMembers.active, true))
-    .orderBy(asc(staffMembers.lastName), asc(staffMembers.firstName))
+    .orderBy(
+      asc(staffMembers.lastName),
+      asc(staffMembers.firstName),
+      asc(groups.name)
+    )
   const linkedStaffIds = new Set(
     linkedStaff.map((staffMember) => staffMember.id)
   )
-  const availableStaff = activeStaff.filter(
-    (staffMember) => !linkedStaffIds.has(staffMember.id)
+  const availableStaff = buildAvailableStaffOptions(
+    activeStaffGroupRows,
+    linkedStaffIds
   )
 
   const rulesByWeekday = groupStaffRulesByWeekday(rules)
@@ -136,22 +153,11 @@ export default async function GroupDetailPage({
               <label className="sr-only" htmlFor="staffMemberId">
                 {t("detail.chooseStaff")}
               </label>
-              <select
-                id="staffMemberId"
-                name="staffMemberId"
-                required
-                className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  {t("detail.chooseStaff")}
-                </option>
-                {availableStaff.map((staffMember) => (
-                  <option key={staffMember.id} value={staffMember.id}>
-                    {staffMember.firstName} {staffMember.lastName}
-                  </option>
-                ))}
-              </select>
+              <StaffSelect
+                options={availableStaff}
+                placeholder={t("detail.chooseStaff")}
+                noLinkedGroupsLabel={t("detail.noLinkedGroups")}
+              />
               <Button type="submit" size="sm">
                 {t("detail.addStaff")}
               </Button>

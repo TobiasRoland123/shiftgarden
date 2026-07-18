@@ -135,6 +135,7 @@
       "staffDescription": "Aktive medarbejdere tilknyttet denne gruppe.",
       "staffMember": "Medarbejder",
       "chooseStaff": "Vælg medarbejder",
+      "noLinkedGroups": "Ingen tilknyttede grupper",
       "addStaff": "Tilføj medarbejder",
       "removeStaff": "Fjern",
       "noStaff": "Der er ikke tilknyttet medarbejdere.",

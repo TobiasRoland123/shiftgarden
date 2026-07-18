@@ -135,6 +135,7 @@
       "staffDescription": "Active staff members linked to this group.",
       "staffMember": "Staff member",
       "chooseStaff": "Choose staff",
+      "noLinkedGroups": "No linked groups",
       "addStaff": "Add staff",
       "removeStaff": "Remove",
       "noStaff": "No staff members have been linked.",

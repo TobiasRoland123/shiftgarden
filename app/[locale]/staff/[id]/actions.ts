@@ -17,8 +17,10 @@ function getString(formData: FormData, key: string) {
 function revalidateMembershipPaths(staffMemberId: string, groupId: string) {
   revalidatePath(`/staff/${staffMemberId}`)
   revalidatePath(`/groups/${groupId}`)
+  revalidatePath("/groups", "layout")
   revalidatePath(`/da/staff/${staffMemberId}`)
   revalidatePath(`/da/groups/${groupId}`)
+  revalidatePath("/da/groups", "layout")
 }
 
 async function linkStaffToGroup(formData: FormData) {
