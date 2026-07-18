@@ -11,6 +11,7 @@ Input contains:
 - each staff member's role
 - each staff member's maximum weekly hours
 - each staff member's availability
+- institution opening hours per day
 - staffing rules per day
 
 Hard constraints:
@@ -21,7 +22,8 @@ Hard constraints:
    - at least minStaff staff members are working
    - at least minPedagogs staff members with role "pedagog" are working
 5. Do not assign overlapping shifts to the same person.
-6. Shifts must stay within the rule startTime and endTime.
+6. Every shift must fit entirely within one institution opening-hours interval. Shifts may extend outside staffing-rule periods.
+7. Return exactly one entry for each of Monday through Sunday, including days with no shifts.
 
 Optimization goals:
 1. Distribute hours fairly across staff.

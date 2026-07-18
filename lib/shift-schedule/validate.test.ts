@@ -15,6 +15,8 @@ const weekdays = [
   "friday",
 ] as const
 
+const daysOfWeek = [...weekdays, "saturday", "sunday"] as const
+
 function createScheduleInput(
   overrides: Partial<ScheduleInput> = {}
 ): ScheduleInput {
@@ -23,6 +25,11 @@ function createScheduleInput(
       id: "group-1",
       name: "Blue room",
     },
+    openingHours: daysOfWeek.map((dayOfWeek) => ({
+      dayOfWeek,
+      startTime: "08:00",
+      endTime: "16:00",
+    })),
     staff: [
       {
         id: "pedagog-1",
@@ -97,20 +104,22 @@ function createGeneratedSchedule(
 ): GeneratedSchedule {
   const generatedSchedule: GeneratedSchedule = {
     groupId: "group-1",
-    days: weekdays.map((dayOfWeek) => ({
+    days: daysOfWeek.map((dayOfWeek) => ({
       dayOfWeek,
-      shifts: [
-        {
-          staffId: "pedagog-1",
-          startTime: "09:00",
-          endTime: "15:00",
-        },
-        {
-          staffId: "assistant-1",
-          startTime: "09:00",
-          endTime: "15:00",
-        },
-      ],
+      shifts: weekdays.includes(dayOfWeek as (typeof weekdays)[number])
+        ? [
+            {
+              staffId: "pedagog-1",
+              startTime: "09:00",
+              endTime: "15:00",
+            },
+            {
+              staffId: "assistant-1",
+              startTime: "09:00",
+              endTime: "15:00",
+            },
+          ]
+        : [],
     })),
     warnings: [],
   }
@@ -126,7 +135,7 @@ function codesFor(result: ReturnType<typeof validateGeneratedSchedule>) {
 }
 
 describe("validateScheduleInputSupport", () => {
-  it("rejects unsupported weekend staffing rules before generation", () => {
+  it("supports weekend staffing rules inside opening hours", () => {
     const result = validateScheduleInputSupport(
       createScheduleInput({
         rules: [
@@ -141,13 +150,30 @@ describe("validateScheduleInputSupport", () => {
       })
     )
 
-    expect(result.valid).toBe(false)
+    expect(result).toEqual({ valid: true, issues: [] })
+  })
+
+  it("rejects staffing rules that do not fit one opening interval", () => {
+    const result = validateScheduleInputSupport(
+      createScheduleInput({
+        openingHours: [
+          { dayOfWeek: "monday", startTime: "08:00", endTime: "12:00" },
+          { dayOfWeek: "monday", startTime: "13:00", endTime: "16:00" },
+        ],
+        rules: [
+          {
+            dayOfWeek: "monday",
+            startTime: "11:00",
+            endTime: "14:00",
+            minPedagogs: 1,
+            minStaff: 2,
+          },
+        ],
+      })
+    )
+
     expect(result.issues).toMatchObject([
-      {
-        code: "unsupported_weekend_rule",
-        severity: "error",
-        dayOfWeek: "saturday",
-      },
+      { code: "staffing_rule_outside_opening_hours", severity: "error" },
     ])
   })
 })
@@ -327,7 +353,7 @@ describe("validateGeneratedSchedule", () => {
               },
             ],
           },
-          ...weekdays.slice(1).map((dayOfWeek) => ({
+          ...daysOfWeek.slice(1).map((dayOfWeek) => ({
             dayOfWeek,
             shifts: [],
           })),
@@ -387,7 +413,7 @@ describe("validateGeneratedSchedule", () => {
               },
             ],
           },
-          ...weekdays.slice(1).map((dayOfWeek) => ({
+          ...daysOfWeek.slice(1).map((dayOfWeek) => ({
             dayOfWeek,
             shifts: [],
           })),
@@ -399,7 +425,7 @@ describe("validateGeneratedSchedule", () => {
     expect(codesFor(result)).not.toContain("overlapping_shift")
   })
 
-  it("validates staffing coverage, pedagog coverage, split shifts, overlapping rules, and shift segments outside rule periods", () => {
+  it("validates staffing coverage while allowing shifts outside rule periods but inside opening hours", () => {
     const scheduleInput = createScheduleInput({
       rules: [
         {
@@ -443,7 +469,7 @@ describe("validateGeneratedSchedule", () => {
               },
             ],
           },
-          ...weekdays.slice(1).map((dayOfWeek) => ({
+          ...daysOfWeek.slice(1).map((dayOfWeek) => ({
             dayOfWeek,
             shifts: [],
           })),
@@ -451,9 +477,8 @@ describe("validateGeneratedSchedule", () => {
       }),
     })
 
-    expect(codesFor(result)).toEqual(
-      expect.arrayContaining(["min_staff_unmet", "shift_outside_staffing_rule"])
-    )
+    expect(codesFor(result)).toContain("min_staff_unmet")
+    expect(codesFor(result)).not.toContain("shift_outside_opening_hours")
     expect(codesFor(result)).not.toContain("min_pedagogs_unmet")
   })
 
@@ -496,7 +521,7 @@ describe("validateGeneratedSchedule", () => {
               },
             ],
           },
-          ...weekdays.slice(1).map((dayOfWeek) => ({
+          ...daysOfWeek.slice(1).map((dayOfWeek) => ({
             dayOfWeek,
             shifts: [],
           })),
@@ -508,8 +533,52 @@ describe("validateGeneratedSchedule", () => {
       expect.arrayContaining([
         "min_staff_unmet",
         "min_pedagogs_unmet",
-        "shift_outside_staffing_rule",
+        "shift_outside_opening_hours",
       ])
     )
+  })
+
+  it("rejects a shift crossing a gap between opening-hours intervals", () => {
+    const result = validateGeneratedSchedule({
+      scheduleInput: createScheduleInput({
+        openingHours: [
+          { dayOfWeek: "saturday", startTime: "08:00", endTime: "12:00" },
+          { dayOfWeek: "saturday", startTime: "13:00", endTime: "16:00" },
+        ],
+        rules: [],
+      }),
+      generatedSchedule: createGeneratedSchedule({
+        days: daysOfWeek.map((dayOfWeek) => ({
+          dayOfWeek,
+          shifts:
+            dayOfWeek === "saturday"
+              ? [{ staffId: "pedagog-1", startTime: "11:00", endTime: "14:00" }]
+              : [],
+        })),
+      }),
+    })
+
+    expect(codesFor(result)).toContain("shift_outside_opening_hours")
+  })
+
+  it("enforces staffing coverage on weekends", () => {
+    const result = validateGeneratedSchedule({
+      scheduleInput: createScheduleInput({
+        rules: [
+          {
+            dayOfWeek: "sunday",
+            startTime: "09:00",
+            endTime: "12:00",
+            minPedagogs: 0,
+            minStaff: 1,
+          },
+        ],
+      }),
+      generatedSchedule: createGeneratedSchedule({
+        days: daysOfWeek.map((dayOfWeek) => ({ dayOfWeek, shifts: [] })),
+      }),
+    })
+
+    expect(codesFor(result)).toContain("min_staff_unmet")
   })
 })

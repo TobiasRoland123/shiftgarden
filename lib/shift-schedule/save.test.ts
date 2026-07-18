@@ -14,6 +14,13 @@ const scheduleInput: ScheduleInput = {
     id: "group-1",
     name: "Blue room",
   },
+  openingHours: [
+    {
+      dayOfWeek: "monday",
+      startTime: "07:00",
+      endTime: "18:00",
+    },
+  ],
   staff: [
     {
       id: "staff-1",
@@ -59,6 +66,16 @@ const generatedSchedule: GeneratedSchedule = {
       dayOfWeek: "tuesday",
       shifts: [],
     },
+    {
+      dayOfWeek: "sunday",
+      shifts: [
+        {
+          staffId: "staff-1",
+          startTime: "10:00",
+          endTime: "12:00",
+        },
+      ],
+    },
   ],
   warnings: ["Could not cover Tuesday."],
 }
@@ -91,6 +108,13 @@ describe("shift schedule save values", () => {
         staffMemberId: "staff-1",
         dayOfWeek: "monday",
         startTime: "08:00",
+        endTime: "12:00",
+      },
+      {
+        planId: "plan-1",
+        staffMemberId: "staff-1",
+        dayOfWeek: "sunday",
+        startTime: "10:00",
         endTime: "12:00",
       },
     ])

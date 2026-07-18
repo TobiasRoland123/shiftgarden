@@ -12,7 +12,7 @@ import {
   staffMembers,
 } from "@/lib/db/schema"
 import type { GeneratedSchedule } from "@/lib/shift-schedule/schemas"
-import { weekdays } from "@/lib/shift-schedule/schemas"
+import { daysOfWeek } from "@/lib/shift-schedule/schemas"
 import { uuidPattern } from "@/lib/uuid"
 import { ShiftSchedulePlanView } from "../../shift-schedule-plan-view"
 
@@ -33,7 +33,7 @@ function formatDateTime(date: Date, locale: string) {
 }
 
 function isGeneratedScheduleDay(day: string): day is GeneratedScheduleDay {
-  return (weekdays as readonly string[]).includes(day)
+  return (daysOfWeek as readonly string[]).includes(day)
 }
 
 export default async function SavedPlanDetailPage({
@@ -90,7 +90,7 @@ export default async function SavedPlanDetailPage({
   const shiftsByDay = new Map<
     GeneratedScheduleDay,
     GeneratedSchedule["days"][number]["shifts"]
-  >(weekdays.map((day) => [day, []]))
+  >(daysOfWeek.map((day) => [day, []]))
   const staffById = Object.fromEntries(
     shifts.map((shift) => [
       shift.staffMemberId,
@@ -113,7 +113,7 @@ export default async function SavedPlanDetailPage({
   const plan: GeneratedSchedule = {
     groupId: savedPlan.groupId,
     warnings: savedPlan.warnings,
-    days: weekdays.map((day) => ({
+    days: daysOfWeek.map((day) => ({
       dayOfWeek: day,
       shifts: shiftsByDay.get(day) ?? [],
     })),

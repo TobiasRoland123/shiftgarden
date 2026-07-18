@@ -5,22 +5,32 @@ import type {
   ScheduleValidationResult,
 } from "@/lib/shift-schedule/validation-types"
 
-const unsupportedRuleDays = new Set(["saturday", "sunday"])
+function timeToMinutes(time: string) {
+  const [hours, minutes] = time.split(":").map(Number)
+  return hours * 60 + minutes
+}
 
-function validateSupportedRuleDays(
+function validateStaffingRulesWithinOpeningHours(
   scheduleInput: ScheduleInput
 ): ScheduleValidationIssue[] {
   return scheduleInput.rules.flatMap((rule, ruleIndex) => {
-    if (!unsupportedRuleDays.has(rule.dayOfWeek)) {
+    const fitsOpeningHours = scheduleInput.openingHours.some(
+      (interval) =>
+        interval.dayOfWeek === rule.dayOfWeek &&
+        timeToMinutes(interval.startTime) <= timeToMinutes(rule.startTime) &&
+        timeToMinutes(interval.endTime) >= timeToMinutes(rule.endTime)
+    )
+
+    if (fitsOpeningHours) {
       return []
     }
 
     return [
       {
-        code: "unsupported_weekend_rule",
+        code: "staffing_rule_outside_opening_hours",
         severity: "error",
         message:
-          "Generated schedule plans currently support Monday through Friday only.",
+          "Each staffing rule must fit within one opening-hours interval.",
         dayOfWeek: rule.dayOfWeek,
         startTime: rule.startTime,
         endTime: rule.endTime,
@@ -33,7 +43,9 @@ function validateSupportedRuleDays(
 function validateScheduleInputSupport(
   scheduleInput: ScheduleInput
 ): ScheduleValidationResult {
-  return buildValidationResult(validateSupportedRuleDays(scheduleInput))
+  return buildValidationResult(
+    validateStaffingRulesWithinOpeningHours(scheduleInput)
+  )
 }
 
-export { validateScheduleInputSupport, validateSupportedRuleDays }
+export { validateScheduleInputSupport, validateStaffingRulesWithinOpeningHours }

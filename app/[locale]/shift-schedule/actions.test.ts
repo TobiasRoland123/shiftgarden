@@ -12,10 +12,10 @@ describe("shift schedule generation validation formatting", () => {
       valid: false,
       issues: [
         {
-          code: "unsupported_weekend_rule",
+          code: "staffing_rule_outside_opening_hours",
           severity: "error",
           message:
-            "Generated schedule plans currently support Monday through Friday only.",
+            "Each staffing rule must fit within one opening-hours interval.",
           dayOfWeek: "saturday",
           startTime: "09:00",
           endTime: "12:00",
@@ -25,7 +25,7 @@ describe("shift schedule generation validation formatting", () => {
     }
 
     expect(formatValidationIssuesForUser(result)).toBe(
-      "Generated schedule plans currently support Monday through Friday only. (saturday, 09:00-12:00, rule 0)"
+      "Each staffing rule must fit within one opening-hours interval. (saturday, 09:00-12:00, rule 0)"
     )
   })
 

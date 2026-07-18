@@ -39,10 +39,16 @@ type ScheduleRule = {
   minStaff: number
 }
 
+type ScheduleOpeningHours = Pick<
+  ScheduleRule,
+  "dayOfWeek" | "startTime" | "endTime"
+>
+
 type BuildScheduleInputParams = {
   group: ScheduleGroup
   linkedStaff: ScheduleStaffMember[]
   availability: ScheduleAvailability[]
+  openingHours: ScheduleOpeningHours[]
   rules: ScheduleRule[]
 }
 
@@ -54,6 +60,7 @@ function buildScheduleInput({
   group,
   linkedStaff,
   availability,
+  openingHours,
   rules,
 }: BuildScheduleInputParams): ScheduleInput {
   return scheduleInputSchema.parse({
@@ -61,6 +68,11 @@ function buildScheduleInput({
       id: group.id,
       name: group.name,
     },
+    openingHours: openingHours.map((interval) => ({
+      ...interval,
+      startTime: toTimeValue(interval.startTime),
+      endTime: toTimeValue(interval.endTime),
+    })),
     staff: linkedStaff.map((staffMember) => ({
       ...staffMember,
       availability: availability
@@ -85,6 +97,7 @@ export type {
   BuildScheduleInputParams,
   ScheduleAvailability,
   ScheduleGroup,
+  ScheduleOpeningHours,
   ScheduleRule,
   ScheduleStaffMember,
 }
