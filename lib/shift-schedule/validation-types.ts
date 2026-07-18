@@ -1,3 +1,5 @@
+import type { GeneratedSchedule } from "@/lib/shift-schedule/schemas"
+
 type ScheduleValidationIssueCode =
   | "group_id_mismatch"
   | "missing_weekday"
@@ -32,6 +34,14 @@ type ScheduleValidationResult = {
   issues: ScheduleValidationIssue[]
 }
 
+type ScheduleValidationWarning = Omit<ScheduleValidationIssue, "severity"> & {
+  severity: "warning"
+}
+
+type AcceptedSchedulePlan = GeneratedSchedule & {
+  validationWarnings: ScheduleValidationWarning[]
+}
+
 function buildValidationResult(
   issues: ScheduleValidationIssue[]
 ): ScheduleValidationResult {
@@ -41,11 +51,24 @@ function buildValidationResult(
   }
 }
 
-export { buildValidationResult }
+function getValidationWarnings(
+  ...results: ScheduleValidationResult[]
+): ScheduleValidationWarning[] {
+  return results.flatMap((result) =>
+    result.issues.filter(
+      (issue): issue is ScheduleValidationWarning =>
+        issue.severity === "warning"
+    )
+  )
+}
+
+export { buildValidationResult, getValidationWarnings }
 
 export type {
+  AcceptedSchedulePlan,
   ScheduleValidationIssue,
   ScheduleValidationIssueCode,
   ScheduleValidationResult,
   ScheduleValidationSeverity,
+  ScheduleValidationWarning,
 }

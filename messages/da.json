@@ -197,7 +197,8 @@
     "generationErrorTitle": "Planen kunne ikke genereres",
     "savedTitle": "Plan gemt",
     "savedDescription": "Gemt som plan {planId}.",
-    "warningsTitle": "Advarsler",
+    "aiWarningsTitle": "AI-advarsler",
+    "validationWarningsTitle": "Valideringsadvarsler",
     "calendarTitle": "Ugeoverblik",
     "calendarDescription": "Vagternes placering og varighed på en fælles tidslinje.",
     "shiftLabel": "{name}: {start} til {end}",
@@ -212,7 +213,8 @@
       "group": "Gruppe",
       "createdAt": "Oprettet",
       "model": "Model",
-      "warnings": "Advarsler",
+      "aiWarnings": "AI-advarsler",
+      "validationWarnings": "Valideringsadvarsler",
       "actions": "Handlinger",
       "view": "Vis"
     },
@@ -220,7 +222,8 @@
       "group": "Gruppe",
       "createdAt": "Oprettet",
       "model": "Model",
-      "warnings": "Advarsler"
+      "aiWarnings": "AI-advarsler",
+      "validationWarnings": "Valideringsadvarsler"
     }
   }
 }

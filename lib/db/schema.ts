@@ -20,6 +20,8 @@ import type {
 } from "@/lib/shift-schedule/schemas"
 import type { ScheduleValidationIssue } from "@/lib/shift-schedule/validation-types"
 
+import type { ScheduleValidationWarning } from "@/lib/shift-schedule/validation-types"
+
 export const staffRole = pgEnum("staff_role", [
   "pedagog",
   "assistant",
@@ -149,6 +151,10 @@ export const shiftSchedulePlans = pgTable(
       .references(() => groups.id, { onDelete: "cascade" }),
     inputJson: jsonb("input_json").notNull(),
     warnings: jsonb("warnings").$type<string[]>().notNull(),
+    validationWarnings: jsonb("validation_warnings")
+      .$type<ScheduleValidationWarning[]>()
+      .notNull()
+      .default([]),
     model: text("model").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

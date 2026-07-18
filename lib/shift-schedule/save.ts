@@ -2,12 +2,17 @@ import type {
   GeneratedSchedule,
   ScheduleInput,
 } from "@/lib/shift-schedule/schemas"
-import type { ScheduleValidationResult } from "@/lib/shift-schedule/validation-types"
+import type {
+  AcceptedSchedulePlan,
+  ScheduleValidationResult,
+  ScheduleValidationWarning,
+} from "@/lib/shift-schedule/validation-types"
 
 type ShiftSchedulePlanInsertValues = {
   groupId: string
   inputJson: ScheduleInput
   warnings: string[]
+  validationWarnings: ScheduleValidationWarning[]
   model: string
 }
 
@@ -37,13 +42,14 @@ function buildShiftSchedulePlanInsertValues({
   scheduleInput,
 }: {
   model: string
-  plan: GeneratedSchedule
+  plan: AcceptedSchedulePlan
   scheduleInput: ScheduleInput
 }): ShiftSchedulePlanInsertValues {
   return {
     groupId: plan.groupId,
     inputJson: scheduleInput,
     warnings: plan.warnings,
+    validationWarnings: plan.validationWarnings,
     model,
   }
 }

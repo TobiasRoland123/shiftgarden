@@ -5,8 +5,35 @@ import {
   formatValidationIssuesForUser,
 } from "@/lib/shift-schedule/action-validation"
 import type { ScheduleValidationResult } from "@/lib/shift-schedule/validation-types"
+import { getValidationWarnings } from "@/lib/shift-schedule/validation-types"
 
 describe("shift schedule generation validation formatting", () => {
+  it("keeps accepted validation warnings separate from validation errors", () => {
+    const warnings = getValidationWarnings({
+      valid: false,
+      issues: [
+        {
+          code: "min_staff_unmet",
+          severity: "error",
+          message: "Minimum staff coverage is not met.",
+        },
+        {
+          code: "max_hours_exceeded",
+          severity: "warning",
+          message: "Hours are close to the weekly capacity.",
+        },
+      ],
+    })
+
+    expect(warnings).toEqual([
+      {
+        code: "max_hours_exceeded",
+        severity: "warning",
+        message: "Hours are close to the weekly capacity.",
+      },
+    ])
+  })
+
   it("formats validation issues for the user-facing generation flow", () => {
     const result: ScheduleValidationResult = {
       valid: false,
