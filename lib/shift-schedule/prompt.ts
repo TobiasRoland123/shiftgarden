@@ -23,12 +23,17 @@ Hard constraints:
 5. Do not assign overlapping shifts to the same person.
 6. Shifts must stay within the rule startTime and endTime.
 
+Hard constraints always take precedence over every optimization goal below.
+
 Optimization goals:
 1. Distribute hours fairly across staff.
 2. Prefer pedagogs only where needed, so assistants/substitutes are also used.
 3. Avoid unnecessarily long shifts if shorter shifts can satisfy the rules.
 4. Minimize gaps in coverage.
-5. Make the schedule easy to read.
+5. Prefer first-in-first-out shift endings on each day: a staff member who starts earlier should generally finish earlier than a staff member who starts later.
+6. Make the schedule easy to read.
+
+First-in-first-out end order is a soft preference only. Break it whenever necessary to satisfy coverage, availability, maximum weekly hours, or any other hard constraint. A first-in-first-out inversion is not an unmet constraint and must not be added to warnings.
 
 Output format:
 Return only valid JSON with this structure:

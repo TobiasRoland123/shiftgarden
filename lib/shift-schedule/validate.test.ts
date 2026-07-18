@@ -165,6 +165,95 @@ describe("validateGeneratedSchedule", () => {
     })
   })
 
+  it("does not treat FIFO end-order inversions as validation errors", () => {
+    const scheduleInput = createScheduleInput({
+      staff: [
+        {
+          id: "anna",
+          firstName: "Anna",
+          lastName: "Jensen",
+          role: "pedagog",
+          maxHoursPerWeek: 37,
+          active: true,
+          availability: [
+            {
+              dayOfWeek: "monday",
+              startAvailabilityTime: "07:00",
+              endAvailabilityTime: "16:30",
+            },
+          ],
+        },
+        {
+          id: "mikkel",
+          firstName: "Mikkel",
+          lastName: "Nielsen",
+          role: "assistant",
+          maxHoursPerWeek: 37,
+          active: true,
+          availability: [
+            {
+              dayOfWeek: "monday",
+              startAvailabilityTime: "07:00",
+              endAvailabilityTime: "16:30",
+            },
+          ],
+        },
+        {
+          id: "samuel",
+          firstName: "Samuel",
+          lastName: "Uyet",
+          role: "assistant",
+          maxHoursPerWeek: 37,
+          active: true,
+          availability: [
+            {
+              dayOfWeek: "monday",
+              startAvailabilityTime: "07:00",
+              endAvailabilityTime: "16:30",
+            },
+          ],
+        },
+      ],
+      rules: [
+        {
+          dayOfWeek: "monday",
+          startTime: "07:00",
+          endTime: "16:30",
+          minPedagogs: 0,
+          minStaff: 0,
+        },
+      ],
+    })
+    const generatedSchedule = createGeneratedSchedule({
+      days: [
+        {
+          dayOfWeek: "monday",
+          shifts: [
+            { staffId: "anna", startTime: "07:00", endTime: "15:00" },
+            {
+              staffId: "mikkel",
+              startTime: "08:00",
+              endTime: "16:30",
+            },
+            {
+              staffId: "samuel",
+              startTime: "08:30",
+              endTime: "13:30",
+            },
+          ],
+        },
+        ...weekdays.slice(1).map((dayOfWeek) => ({
+          dayOfWeek,
+          shifts: [],
+        })),
+      ],
+    })
+
+    expect(
+      validateGeneratedSchedule({ scheduleInput, generatedSchedule })
+    ).toEqual({ valid: true, issues: [] })
+  })
+
   it("reports group mismatch, missing weekday, duplicate weekday, unknown staff, inactive staff, invalid time, availability, max-hours, and overlap failures", () => {
     const scheduleInput = createScheduleInput({
       staff: [
