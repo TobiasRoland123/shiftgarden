@@ -1,5 +1,6 @@
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -11,6 +12,13 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
+
+import type {
+  GeneratedSchedule,
+  ScheduleInput,
+} from "@/lib/shift-schedule/schemas"
+import type { ScheduleValidationIssue } from "@/lib/shift-schedule/validation-types"
 
 export const staffRole = pgEnum("staff_role", [
   "pedagog",
@@ -27,6 +35,11 @@ export const dayOfWeek = pgEnum("day_of_week", [
   "saturday",
   "sunday",
 ])
+
+export const shiftScheduleGenerationAttemptStatus = pgEnum(
+  "shift_schedule_generation_attempt_status",
+  ["validation_failed", "accepted"]
+)
 
 export const healthChecks = pgTable("health_checks", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -73,6 +86,19 @@ export const groups = pgTable("groups", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
 })
+
+export const institutionOpeningHours = pgTable(
+  "institution_opening_hours",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    dayOfWeek: dayOfWeek("day_of_week").notNull(),
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+  },
+  (table) => [
+    index("institution_opening_hours_day_of_week_idx").on(table.dayOfWeek),
+  ]
+)
 
 export const staffMemberGroups = pgTable(
   "staff_member_groups",
@@ -131,6 +157,52 @@ export const shiftSchedulePlans = pgTable(
   (table) => [
     index("shift_schedule_plans_group_id_idx").on(table.groupId),
     index("shift_schedule_plans_created_at_idx").on(table.createdAt),
+  ]
+)
+
+export const shiftScheduleGenerationAttempts = pgTable(
+  "shift_schedule_generation_attempts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    generationId: uuid("generation_id").notNull(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    status: shiftScheduleGenerationAttemptStatus("status").notNull(),
+    attemptNumber: integer("attempt_number").notNull(),
+    model: text("model").notNull(),
+    inputJson: jsonb("input_json").$type<ScheduleInput>().notNull(),
+    outputJson: jsonb("output_json").$type<GeneratedSchedule>().notNull(),
+    validationErrors: jsonb("validation_errors")
+      .$type<ScheduleValidationIssue[]>()
+      .notNull(),
+    acceptedPlanId: uuid("accepted_plan_id").references(
+      () => shiftSchedulePlans.id,
+      { onDelete: "set null" }
+    ),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now() + interval '30 days'`),
+  },
+  (table) => [
+    check(
+      "shift_schedule_generation_attempts_attempt_number_check",
+      sql`${table.attemptNumber} > 0`
+    ),
+    uniqueIndex("shift_schedule_generation_attempts_generation_attempt_idx").on(
+      table.generationId,
+      table.attemptNumber
+    ),
+    index("shift_schedule_generation_attempts_group_id_idx").on(table.groupId),
+    index("shift_schedule_generation_attempts_accepted_plan_id_idx").on(
+      table.acceptedPlanId
+    ),
+    index("shift_schedule_generation_attempts_expires_at_idx").on(
+      table.expiresAt
+    ),
   ]
 )
 

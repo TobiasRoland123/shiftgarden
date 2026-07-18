@@ -51,6 +51,19 @@ type GroupCapacityShortfall = {
   pedagogShortfallHours: number
 }
 
+function normalizeGroupName(name: string) {
+  const [firstCharacter] = name
+
+  if (!firstCharacter) {
+    return name
+  }
+
+  return (
+    firstCharacter.toLocaleUpperCase("da-DK") +
+    name.slice(firstCharacter.length)
+  )
+}
+
 function compareGroupStaffRules(left: GroupStaffRule, right: GroupStaffRule) {
   const leftIndex = daySortOrder.get(left.dayOfWeek) ?? 99
   const rightIndex = daySortOrder.get(right.dayOfWeek) ?? 99
@@ -215,6 +228,7 @@ export {
   haveSameStaffingRulesOnAllWeekdays,
   getStaffingRuleDurationMinutes,
   isWeekdayAvailability,
+  normalizeGroupName,
   weekdayAvailability,
 }
 

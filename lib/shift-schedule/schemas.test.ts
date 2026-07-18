@@ -57,7 +57,7 @@ describe("generatedScheduleSchema", () => {
     )
   })
 
-  it("rejects unsupported output days", () => {
+  it("accepts weekend output days", () => {
     const result = generatedScheduleSchema.safeParse({
       ...validGeneratedSchedule,
       days: [
@@ -68,7 +68,7 @@ describe("generatedScheduleSchema", () => {
       ],
     })
 
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
 
   it("rejects malformed shifts", () => {

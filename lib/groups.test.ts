@@ -12,9 +12,34 @@ import {
   cloneStaffingRulesToAllWeekdays,
   groupStaffRulesByWeekday,
   haveSameStaffingRulesOnAllWeekdays,
+  normalizeGroupName,
   type GroupCapacityStaffingRule,
   type GroupCapacityStaffMember,
 } from "./groups"
+
+describe("group name normalization", () => {
+  it.each([
+    ["mumistuen", "Mumistuen"],
+    ["æblehaven", "Æblehaven"],
+    ["ønskeøen", "Ønskeøen"],
+    ["åstuen", "Åstuen"],
+  ])("capitalizes the first Danish letter in %s", (name, expected) => {
+    expect(normalizeGroupName(name)).toBe(expected)
+  })
+
+  it("does not lowercase the rest of the name", () => {
+    expect(normalizeGroupName("mUMIStuen")).toBe("MUMIStuen")
+  })
+
+  it("handles a first character outside the UTF-16 basic multilingual plane", () => {
+    expect(normalizeGroupName("𐐨ouse")).toBe("𐐀ouse")
+  })
+
+  it("leaves empty and already normalized names unchanged", () => {
+    expect(normalizeGroupName("")).toBe("")
+    expect(normalizeGroupName("Mumistuen")).toBe("Mumistuen")
+  })
+})
 
 function weekdayRule(
   overrides: Partial<GroupCapacityStaffingRule> = {}

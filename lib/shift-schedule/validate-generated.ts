@@ -1,4 +1,4 @@
-import { weekdays } from "@/lib/shift-schedule/schemas"
+import { daysOfWeek } from "@/lib/shift-schedule/schemas"
 import type {
   GeneratedSchedule,
   ScheduleInput,
@@ -11,8 +11,6 @@ import type {
 
 type GeneratedDay = GeneratedSchedule["days"][number]
 type GeneratedShift = GeneratedDay["shifts"][number]
-type StaffingRule = ScheduleInput["rules"][number]
-
 type ShiftWithDay = GeneratedShift & {
   dayOfWeek: GeneratedDay["dayOfWeek"]
 }
@@ -81,7 +79,7 @@ function validateWeekdays(
   }
 
   return [
-    ...weekdays.flatMap((dayOfWeek) =>
+    ...daysOfWeek.flatMap((dayOfWeek) =>
       counts.has(dayOfWeek)
         ? []
         : [
@@ -311,71 +309,87 @@ function validateNoOverlaps(
   return issues
 }
 
+function validateFifoEndOrder(
+  generatedSchedule: GeneratedSchedule
+): ScheduleValidationIssue[] {
+  const issues: ScheduleValidationIssue[] = []
+
+  for (const day of generatedSchedule.days) {
+    for (let firstIndex = 0; firstIndex < day.shifts.length; firstIndex += 1) {
+      const first = day.shifts[firstIndex]
+
+      for (
+        let secondIndex = firstIndex + 1;
+        secondIndex < day.shifts.length;
+        secondIndex += 1
+      ) {
+        const second = day.shifts[secondIndex]
+
+        if (first.staffId === second.staffId) {
+          continue
+        }
+
+        const firstStart = timeToMinutes(first.startTime)
+        const secondStart = timeToMinutes(second.startTime)
+        const firstEnd = timeToMinutes(first.endTime)
+        const secondEnd = timeToMinutes(second.endTime)
+        const earlier = firstStart < secondStart ? first : second
+        const later = firstStart < secondStart ? second : first
+        const earlierEnd = firstStart < secondStart ? firstEnd : secondEnd
+        const laterEnd = firstStart < secondStart ? secondEnd : firstEnd
+
+        if (firstStart === secondStart || earlierEnd <= laterEnd) {
+          continue
+        }
+
+        issues.push({
+          code: "fifo_end_order_inversion",
+          severity: "error",
+          message: `Staff member ${later.staffId} starts after ${earlier.staffId} but ends earlier. Adjust their end times so staff who start earlier do not finish later.`,
+          dayOfWeek: day.dayOfWeek,
+          staffId: later.staffId,
+          startTime: later.startTime,
+          endTime: later.endTime,
+        })
+      }
+    }
+  }
+
+  return issues
+}
+
 function isShiftInInterval(shift: ShiftWithDay, start: number, end: number) {
   return (
     timeToMinutes(shift.startTime) < end && timeToMinutes(shift.endTime) > start
   )
 }
 
-function isIntervalCoveredByRules(
-  rules: StaffingRule[],
-  start: number,
-  end: number
-) {
-  return rules.some(
-    (rule) =>
-      timeToMinutes(rule.startTime) <= start &&
-      timeToMinutes(rule.endTime) >= end
-  )
-}
-
-function validateShiftSegmentsInsideRules({
+function validateShiftsWithinOpeningHours({
+  scheduleInput,
   generatedSchedule,
-  rules,
 }: {
+  scheduleInput: ScheduleInput
   generatedSchedule: GeneratedSchedule
-  rules: ScheduleInput["rules"]
-}) {
+}): ScheduleValidationIssue[] {
   return flattenGeneratedShifts(generatedSchedule).flatMap((shift) => {
-    const sameDayRules = rules.filter(
-      (rule) => rule.dayOfWeek === shift.dayOfWeek
-    )
     const shiftStart = timeToMinutes(shift.startTime)
     const shiftEnd = timeToMinutes(shift.endTime)
-    const boundaries = new Set([shiftStart, shiftEnd])
+    const fitsOpeningHours = scheduleInput.openingHours.some(
+      (interval) =>
+        interval.dayOfWeek === shift.dayOfWeek &&
+        timeToMinutes(interval.startTime) <= shiftStart &&
+        timeToMinutes(interval.endTime) >= shiftEnd
+    )
 
-    for (const rule of sameDayRules) {
-      const ruleStart = timeToMinutes(rule.startTime)
-      const ruleEnd = timeToMinutes(rule.endTime)
-
-      if (ruleStart > shiftStart && ruleStart < shiftEnd) {
-        boundaries.add(ruleStart)
-      }
-
-      if (ruleEnd > shiftStart && ruleEnd < shiftEnd) {
-        boundaries.add(ruleEnd)
-      }
-    }
-
-    const sortedBoundaries = Array.from(boundaries).sort((a, b) => a - b)
-    const uncoveredSegment = sortedBoundaries
-      .slice(0, -1)
-      .map((start, index) => ({ start, end: sortedBoundaries[index + 1] }))
-      .find(
-        (segment) =>
-          segment.end > segment.start &&
-          !isIntervalCoveredByRules(sameDayRules, segment.start, segment.end)
-      )
-
-    if (!uncoveredSegment) {
+    if (fitsOpeningHours) {
       return []
     }
 
     return [
       {
-        code: "shift_outside_staffing_rule",
+        code: "shift_outside_opening_hours",
         severity: "error",
-        message: "Generated shift includes time outside staffing-rule periods.",
+        message: "Generated shift is outside institution opening hours.",
         dayOfWeek: shift.dayOfWeek,
         staffId: shift.staffId,
         startTime: shift.startTime,
@@ -394,18 +408,9 @@ function validateStaffingRules({
 }): ScheduleValidationIssue[] {
   const staffById = indexStaffById(scheduleInput)
   const allShifts = flattenGeneratedShifts(generatedSchedule)
-  const issues: ScheduleValidationIssue[] = [
-    ...validateShiftSegmentsInsideRules({
-      generatedSchedule,
-      rules: scheduleInput.rules,
-    }),
-  ]
+  const issues: ScheduleValidationIssue[] = []
 
   scheduleInput.rules.forEach((rule, ruleIndex) => {
-    if (!weekdays.includes(rule.dayOfWeek as (typeof weekdays)[number])) {
-      return
-    }
-
     const ruleStart = timeToMinutes(rule.startTime)
     const ruleEnd = timeToMinutes(rule.endTime)
     const sameDayShifts = allShifts.filter(
@@ -491,6 +496,8 @@ function validateGeneratedSchedule({
     ...validateAvailability({ scheduleInput, generatedSchedule }),
     ...validateMaxWeeklyHours({ scheduleInput, generatedSchedule }),
     ...validateNoOverlaps(generatedSchedule),
+    ...validateShiftsWithinOpeningHours({ scheduleInput, generatedSchedule }),
+    ...validateFifoEndOrder(generatedSchedule),
     ...validateStaffingRules({ scheduleInput, generatedSchedule }),
   ])
 }
@@ -502,12 +509,14 @@ export {
   timeToMinutes,
   validateActiveStaffOnly,
   validateAvailability,
+  validateFifoEndOrder,
   validateGeneratedSchedule,
   validateKnownStaffIds,
   validateMaxWeeklyHours,
   validateNoOverlaps,
   validateScheduleGroupId,
   validateShiftTimes,
+  validateShiftsWithinOpeningHours,
   validateStaffingRules,
   validateWeekdays,
 }

@@ -14,7 +14,8 @@
   "navigation": {
     "staff": "Personale",
     "groups": "Stuer",
-    "shiftSchedule": "Vagtplan"
+    "shiftSchedule": "Vagtplan",
+    "openingHours": "Åbningstider"
   },
   "staff": {
     "title": "Personale",
@@ -26,10 +27,10 @@
     "backToStaff": "Tilbage til personale",
     "backToStaffMember": "Tilbage til medarbejder",
     "newTitle": "Opret medarbejder",
-    "newDescription": "Tilføj medarbejderoplysninger og tilgængelighed mandag-fredag.",
+    "newDescription": "Tilføj medarbejderoplysninger og ugentlig tilgængelighed.",
     "edit": "Rediger",
     "editTitle": "Rediger medarbejder",
-    "editDescription": "Opdater medarbejderoplysninger og tilgængelighed mandag-fredag.",
+    "editDescription": "Opdater medarbejderoplysninger og ugentlig tilgængelighed.",
     "table": {
       "name": "Navn",
       "role": "Rolle",
@@ -67,7 +68,7 @@
       "maxHours": "Maks. timer pr. uge",
       "active": "Aktiv medarbejder",
       "availabilityTitle": "Ugentlig tilgængelighed",
-      "availabilityDescription": "Lad en hverdag være tom, hvis medarbejderen ikke er tilgængelig den dag.",
+      "availabilityDescription": "Lad en dag være tom, hvis medarbejderen ikke er tilgængelig den dag.",
       "startTime": "Start",
       "endTime": "Slut",
       "save": "Gem medarbejder",
@@ -104,7 +105,7 @@
     "backToGroups": "Tilbage til grupper",
     "backToGroup": "Tilbage til gruppe",
     "newTitle": "Opret gruppe",
-    "newDescription": "Tilføj gruppenavn og bemandingsregler mandag-fredag.",
+    "newDescription": "Tilføj gruppenavn og ugentlige bemandingsregler.",
     "edit": "Rediger",
     "editTitle": "Rediger gruppe",
     "editDescription": "Opdater gruppenavn og bemandingsregler.",
@@ -119,7 +120,7 @@
       "detailsDescription": "Disse felter beskriver gruppen.",
       "name": "Navn",
       "rulesTitle": "Bemandingsregler",
-      "rulesDescription": "Tilføj minimumsbemanding for hver tidsperiode på hverdage.",
+      "rulesDescription": "Tilføj minimumsbemanding for hver tidsperiode på hverdage. Hver regel skal ligge i ét interval med åbningstider.",
       "applyRulesToAllWeekdays": "Anvend de samme regler på alle hverdage",
       "applyRulesToAllWeekdaysDescription": "Rediger ét fælles sæt regler, som gemmes separat for mandag til fredag.",
       "allWeekdays": "Alle hverdage",
@@ -158,9 +159,22 @@
       "pedagogCapacityShortfall": "Denne gruppe mangler {hours} pædagogtimer i denne uge baseret på de nuværende bemandingsregler og tilknyttet pædagogkapacitet."
     }
   },
+  "openingHours": {
+    "title": "Institutionens åbningstider",
+    "description": "Konfigurer de globale tidsrum, hvor vagter må planlægges. Tilføj flere intervaller ved delte åbningstider, eller lad en dag være lukket. Eksisterende bemandingsregler skal fortsat ligge i ét interval.",
+    "addInterval": "Tilføj interval",
+    "removeInterval": "Fjern interval",
+    "closed": "Lukket",
+    "startTime": "Start",
+    "endTime": "Slut",
+    "save": "Gem åbningstider",
+    "saving": "Gemmer...",
+    "saved": "Åbningstider gemt.",
+    "errorTitle": "Ret disse felter før du gemmer"
+  },
   "shiftSchedule": {
     "title": "Vagtplan",
-    "description": "Forhåndsvis de gruppedata, der skal bruges til at lave en vagtplan.",
+    "description": "Forhåndsvis åbningstider og gruppedata, der bruges til at lave en vagtplan.",
     "chooseGroup": "Vælg gruppe",
     "groupPlaceholder": "Vælg en gruppe",
     "showJson": "Vis JSON",
@@ -181,7 +195,7 @@
     "generatePlan": "Generér plan",
     "generatingPlan": "Genererer...",
     "generatedTitle": "AI-vagtplan",
-    "generatedDescription": "Generér et udkast fra den valgte gruppes personale, tilgængelighed og bemandingsregler.",
+    "generatedDescription": "Generér et udkast fra institutionens åbningstider og den valgte gruppes personale, tilgængelighed og bemandingsregler.",
     "generatedEmptyDescription": "Generér en plan for at se valideret AI-output her.",
     "generationErrorTitle": "Planen kunne ikke genereres",
     "savedTitle": "Plan gemt",

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  buildShiftScheduleGenerationAttemptInsertValues,
   buildShiftSchedulePlanInsertValues,
   buildShiftScheduleShiftInsertValues,
 } from "@/lib/shift-schedule/save"
@@ -14,6 +15,13 @@ const scheduleInput: ScheduleInput = {
     id: "group-1",
     name: "Blue room",
   },
+  openingHours: [
+    {
+      dayOfWeek: "monday",
+      startTime: "07:00",
+      endTime: "18:00",
+    },
+  ],
   staff: [
     {
       id: "staff-1",
@@ -59,11 +67,78 @@ const generatedSchedule: GeneratedSchedule = {
       dayOfWeek: "tuesday",
       shifts: [],
     },
+    {
+      dayOfWeek: "sunday",
+      shifts: [
+        {
+          staffId: "staff-1",
+          startTime: "10:00",
+          endTime: "12:00",
+        },
+      ],
+    },
   ],
   warnings: ["Could not cover Tuesday."],
 }
 
 describe("shift schedule save values", () => {
+  it("builds a failed attempt with parsed JSON and structured errors", () => {
+    const validation = {
+      valid: false,
+      issues: [
+        {
+          code: "outside_availability" as const,
+          severity: "error" as const,
+          message: "Shift is outside availability.",
+          dayOfWeek: "monday",
+          staffId: "staff-1",
+          startTime: "08:00",
+          endTime: "12:00",
+        },
+      ],
+    }
+
+    expect(
+      buildShiftScheduleGenerationAttemptInsertValues({
+        attemptNumber: 1,
+        generationId: "generation-1",
+        model: "openai/gpt-5.4",
+        plan: generatedSchedule,
+        scheduleInput,
+        validation,
+      })
+    ).toEqual({
+      generationId: "generation-1",
+      groupId: "group-1",
+      status: "validation_failed",
+      attemptNumber: 1,
+      model: "openai/gpt-5.4",
+      inputJson: scheduleInput,
+      outputJson: generatedSchedule,
+      validationErrors: validation.issues,
+      acceptedPlanId: null,
+    })
+  })
+
+  it("links an accepted attempt to its accepted plan without validation errors", () => {
+    expect(
+      buildShiftScheduleGenerationAttemptInsertValues({
+        acceptedPlanId: "plan-1",
+        attemptNumber: 2,
+        generationId: "generation-1",
+        model: "openai/gpt-5.4",
+        plan: generatedSchedule,
+        scheduleInput,
+        validation: { valid: true, issues: [] },
+      })
+    ).toMatchObject({
+      status: "accepted",
+      attemptNumber: 2,
+      acceptedPlanId: "plan-1",
+      validationErrors: [],
+    })
+  })
+
   it("builds plan insert values from generated output and input JSON", () => {
     expect(
       buildShiftSchedulePlanInsertValues({
@@ -91,6 +166,13 @@ describe("shift schedule save values", () => {
         staffMemberId: "staff-1",
         dayOfWeek: "monday",
         startTime: "08:00",
+        endTime: "12:00",
+      },
+      {
+        planId: "plan-1",
+        staffMemberId: "staff-1",
+        dayOfWeek: "sunday",
+        startTime: "10:00",
         endTime: "12:00",
       },
     ])

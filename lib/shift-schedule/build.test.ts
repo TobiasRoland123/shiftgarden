@@ -41,6 +41,13 @@ describe("buildScheduleInput", () => {
           endAvailabilityTime: "15:00:00",
         },
       ],
+      openingHours: [
+        {
+          dayOfWeek: "monday",
+          startTime: "07:00:00",
+          endTime: "18:00:00",
+        },
+      ],
       rules: [
         {
           dayOfWeek: "monday",
@@ -57,6 +64,13 @@ describe("buildScheduleInput", () => {
         id: "group-1",
         name: "Blue room",
       },
+      openingHours: [
+        {
+          dayOfWeek: "monday",
+          startTime: "07:00",
+          endTime: "18:00",
+        },
+      ],
       staff: [
         {
           id: "staff-1",
