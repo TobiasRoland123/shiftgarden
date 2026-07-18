@@ -165,7 +165,7 @@ describe("validateGeneratedSchedule", () => {
     })
   })
 
-  it("does not treat FIFO end-order inversions as validation errors", () => {
+  it("rejects FIFO end-order inversions with details for regeneration", () => {
     const scheduleInput = createScheduleInput({
       staff: [
         {
@@ -251,7 +251,27 @@ describe("validateGeneratedSchedule", () => {
 
     expect(
       validateGeneratedSchedule({ scheduleInput, generatedSchedule })
-    ).toEqual({ valid: true, issues: [] })
+    ).toMatchObject({
+      valid: false,
+      issues: [
+        {
+          code: "fifo_end_order_inversion",
+          severity: "error",
+          dayOfWeek: "monday",
+          staffId: "samuel",
+          startTime: "08:30",
+          endTime: "13:30",
+        },
+        {
+          code: "fifo_end_order_inversion",
+          severity: "error",
+          dayOfWeek: "monday",
+          staffId: "samuel",
+          startTime: "08:30",
+          endTime: "13:30",
+        },
+      ],
+    })
   })
 
   it("reports group mismatch, missing weekday, duplicate weekday, unknown staff, inactive staff, invalid time, availability, max-hours, and overlap failures", () => {

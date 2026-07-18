@@ -311,6 +311,55 @@ function validateNoOverlaps(
   return issues
 }
 
+function validateFifoEndOrder(
+  generatedSchedule: GeneratedSchedule
+): ScheduleValidationIssue[] {
+  const issues: ScheduleValidationIssue[] = []
+
+  for (const day of generatedSchedule.days) {
+    for (let firstIndex = 0; firstIndex < day.shifts.length; firstIndex += 1) {
+      const first = day.shifts[firstIndex]
+
+      for (
+        let secondIndex = firstIndex + 1;
+        secondIndex < day.shifts.length;
+        secondIndex += 1
+      ) {
+        const second = day.shifts[secondIndex]
+
+        if (first.staffId === second.staffId) {
+          continue
+        }
+
+        const firstStart = timeToMinutes(first.startTime)
+        const secondStart = timeToMinutes(second.startTime)
+        const firstEnd = timeToMinutes(first.endTime)
+        const secondEnd = timeToMinutes(second.endTime)
+        const earlier = firstStart < secondStart ? first : second
+        const later = firstStart < secondStart ? second : first
+        const earlierEnd = firstStart < secondStart ? firstEnd : secondEnd
+        const laterEnd = firstStart < secondStart ? secondEnd : firstEnd
+
+        if (firstStart === secondStart || earlierEnd <= laterEnd) {
+          continue
+        }
+
+        issues.push({
+          code: "fifo_end_order_inversion",
+          severity: "error",
+          message: `Staff member ${later.staffId} starts after ${earlier.staffId} but ends earlier. Adjust their end times so staff who start earlier do not finish later.`,
+          dayOfWeek: day.dayOfWeek,
+          staffId: later.staffId,
+          startTime: later.startTime,
+          endTime: later.endTime,
+        })
+      }
+    }
+  }
+
+  return issues
+}
+
 function isShiftInInterval(shift: ShiftWithDay, start: number, end: number) {
   return (
     timeToMinutes(shift.startTime) < end && timeToMinutes(shift.endTime) > start
@@ -491,6 +540,7 @@ function validateGeneratedSchedule({
     ...validateAvailability({ scheduleInput, generatedSchedule }),
     ...validateMaxWeeklyHours({ scheduleInput, generatedSchedule }),
     ...validateNoOverlaps(generatedSchedule),
+    ...validateFifoEndOrder(generatedSchedule),
     ...validateStaffingRules({ scheduleInput, generatedSchedule }),
   ])
 }
@@ -502,6 +552,7 @@ export {
   timeToMinutes,
   validateActiveStaffOnly,
   validateAvailability,
+  validateFifoEndOrder,
   validateGeneratedSchedule,
   validateKnownStaffIds,
   validateMaxWeeklyHours,

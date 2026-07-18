@@ -9,6 +9,7 @@ type ScheduleValidationIssueCode =
   | "outside_availability"
   | "max_hours_exceeded"
   | "overlapping_shift"
+  | "fifo_end_order_inversion"
   | "shift_outside_staffing_rule"
   | "min_staff_unmet"
   | "min_pedagogs_unmet"

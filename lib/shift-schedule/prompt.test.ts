@@ -3,18 +3,13 @@ import { describe, expect, it } from "vitest"
 import { shiftSchedulePrompt } from "@/lib/shift-schedule/prompt"
 
 describe("shiftSchedulePrompt", () => {
-  it("makes FIFO end order a soft preference below hard constraints", () => {
+  it("makes FIFO end order a hard constraint", () => {
     expect(shiftSchedulePrompt).toContain(
-      "a staff member who starts earlier should generally finish earlier"
+      "a staff member who starts earlier must not finish later"
     )
     expect(shiftSchedulePrompt).toContain(
       "Hard constraints always take precedence"
     )
-    expect(shiftSchedulePrompt).toContain(
-      "First-in-first-out end order is a soft preference only"
-    )
-    expect(shiftSchedulePrompt).toContain(
-      "A first-in-first-out inversion is not an unmet constraint"
-    )
+    expect(shiftSchedulePrompt).not.toContain("soft preference only")
   })
 })
