@@ -11,7 +11,12 @@ import {
   staffMemberGroups,
   staffMembers,
 } from "@/lib/db/schema"
-import { daySortOrder, formatStaffRole, formatWeekday } from "@/lib/staff"
+import {
+  daySortOrder,
+  formatStaffRole,
+  formatWeekday,
+  getAvailabilityHoursMismatch,
+} from "@/lib/staff"
 import { linkStaffToGroup, unlinkStaffFromGroup } from "./actions"
 
 const uuidPattern =
@@ -67,6 +72,10 @@ export default async function StaffDetailPage({
 
     return leftIndex - rightIndex
   })
+  const availabilityHoursMismatch = getAvailabilityHoursMismatch(
+    availability,
+    staffMember.maxHoursPerWeek
+  )
 
   return (
     <div className="flex min-h-svh flex-col gap-6 p-6">
@@ -113,6 +122,12 @@ export default async function StaffDetailPage({
           </div>
         </div>
       </section>
+
+      {availabilityHoursMismatch ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
+          {t("detail.availabilityHoursMismatch", availabilityHoursMismatch)}
+        </div>
+      ) : null}
 
       <section className="rounded-lg border p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

@@ -87,6 +87,7 @@
       "allGroupsLinked": "All groups are already linked.",
       "actions": "Actions",
       "availability": "Availability",
+      "availabilityHoursMismatch": "Available hours total {availableHours}h, but max hours per week is {maxHours}h.",
       "noAvailability": "No availability has been added.",
       "day": "Day",
       "start": "Start",
