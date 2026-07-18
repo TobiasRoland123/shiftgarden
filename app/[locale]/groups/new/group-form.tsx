@@ -6,7 +6,11 @@ import { useLocale, useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { formatWeekday, weekdayAvailability } from "@/lib/groups"
+import {
+  formatWeekday,
+  normalizeGroupName,
+  weekdayAvailability,
+} from "@/lib/groups"
 import { createGroup } from "./actions"
 
 type GroupFormState = {
@@ -107,7 +111,7 @@ function getInitialSnapshot(
   rulesByDay: RuleInputsByDay
 ): GroupFormSnapshot {
   return {
-    name: initialValues?.name ?? "",
+    name: normalizeGroupName(initialValues?.name ?? ""),
     rules: getRulesSnapshot(rulesByDay),
   }
 }
@@ -232,7 +236,12 @@ function GroupForm({ action = createGroup, initialValues }: GroupFormProps) {
             name="name"
             required
             autoComplete="off"
-            defaultValue={initialValues?.name}
+            defaultValue={normalizeGroupName(initialValues?.name ?? "")}
+            onInput={(event) => {
+              event.currentTarget.value = normalizeGroupName(
+                event.currentTarget.value
+              )
+            }}
           />
         </label>
       </section>
