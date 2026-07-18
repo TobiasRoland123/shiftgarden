@@ -7,18 +7,14 @@ import { redirect } from "@/i18n/navigation"
 import { defaultLocale, locales, type Locale } from "@/i18n/routing"
 import { db } from "@/lib/db"
 import { groups, groupStaffRules } from "@/lib/db/schema"
-import { isWeekdayAvailability, weekdayAvailability } from "@/lib/groups"
+import {
+  cloneStaffingRulesToAllWeekdays,
+  weekdayAvailability,
+  type StaffingRuleValues,
+} from "@/lib/groups"
 
 type GroupFormState = {
   errors: string[]
-}
-
-type GroupStaffRuleRow = {
-  dayOfWeek: (typeof weekdayAvailability)[number]
-  startTime: string
-  endTime: string
-  minPedagogs: number
-  minStaff: number
 }
 
 function getString(formData: FormData, key: string) {
@@ -41,71 +37,85 @@ function getPositiveWholeNumber(value: string) {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null
 }
 
-function getGroupStaffRuleRows(formData: FormData) {
+function getStaffingRuleValues(formData: FormData, prefix: string) {
   const errors: string[] = []
-  const rows: GroupStaffRuleRow[] = []
+  const rows: StaffingRuleValues[] = []
+  const rowCount = Number(getString(formData, `${prefix}-rule-count`))
 
-  for (const day of weekdayAvailability) {
-    const rowCount = Number(getString(formData, `${day}-rule-count`))
+  if (!Number.isInteger(rowCount) || rowCount < 0) {
+    return { rows, errors: ["Rule rows are invalid."] }
+  }
 
-    if (!Number.isInteger(rowCount) || rowCount < 0) {
-      errors.push("Rule rows are invalid.")
+  for (let index = 0; index < rowCount; index += 1) {
+    const startTime = getString(formData, `${prefix}-${index}-startTime`)
+    const endTime = getString(formData, `${prefix}-${index}-endTime`)
+    const minPedagogsValue = getString(
+      formData,
+      `${prefix}-${index}-minPedagogs`
+    )
+    const minStaffValue = getString(formData, `${prefix}-${index}-minStaff`)
+    const hasAnyValue =
+      startTime || endTime || minPedagogsValue || minStaffValue
+
+    if (!hasAnyValue) {
       continue
     }
 
-    for (let index = 0; index < rowCount; index += 1) {
-      const startTime = getString(formData, `${day}-${index}-startTime`)
-      const endTime = getString(formData, `${day}-${index}-endTime`)
-      const minPedagogsValue = getString(
-        formData,
-        `${day}-${index}-minPedagogs`
-      )
-      const minStaffValue = getString(formData, `${day}-${index}-minStaff`)
-      const hasAnyValue =
-        startTime || endTime || minPedagogsValue || minStaffValue
-
-      if (!hasAnyValue) {
-        continue
-      }
-
-      if (!startTime || !endTime || !minPedagogsValue || !minStaffValue) {
-        errors.push("Staff rule rows need all fields filled in.")
-        continue
-      }
-
-      if (endTime <= startTime) {
-        errors.push("Staff rule end time must be after start time.")
-        continue
-      }
-
-      const minPedagogs = getPositiveWholeNumber(minPedagogsValue)
-      const minStaff = getPositiveWholeNumber(minStaffValue)
-
-      if (minPedagogs === null || minStaff === null) {
-        errors.push("Minimum staff counts must be positive whole numbers.")
-        continue
-      }
-
-      if (minPedagogs > minStaff) {
-        errors.push("Minimum pedagogs cannot be higher than minimum staff.")
-        continue
-      }
-
-      if (!isWeekdayAvailability(day)) {
-        continue
-      }
-
-      rows.push({
-        dayOfWeek: day,
-        startTime,
-        endTime,
-        minPedagogs,
-        minStaff,
-      })
+    if (!startTime || !endTime || !minPedagogsValue || !minStaffValue) {
+      errors.push("Staff rule rows need all fields filled in.")
+      continue
     }
+
+    if (endTime <= startTime) {
+      errors.push("Staff rule end time must be after start time.")
+      continue
+    }
+
+    const minPedagogs = getPositiveWholeNumber(minPedagogsValue)
+    const minStaff = getPositiveWholeNumber(minStaffValue)
+
+    if (minPedagogs === null || minStaff === null) {
+      errors.push("Minimum staff counts must be positive whole numbers.")
+      continue
+    }
+
+    if (minPedagogs > minStaff) {
+      errors.push("Minimum pedagogs cannot be higher than minimum staff.")
+      continue
+    }
+
+    rows.push({
+      startTime,
+      endTime,
+      minPedagogs,
+      minStaff,
+    })
   }
 
   return { rows, errors }
+}
+
+function getGroupStaffRuleRows(formData: FormData) {
+  if (getString(formData, "applyRulesToAllWeekdays") === "true") {
+    const sharedRules = getStaffingRuleValues(formData, "shared")
+
+    return {
+      rows: cloneStaffingRulesToAllWeekdays(sharedRules.rows),
+      errors: sharedRules.errors,
+    }
+  }
+
+  const results = weekdayAvailability.map((day) => ({
+    day,
+    ...getStaffingRuleValues(formData, day),
+  }))
+
+  return {
+    rows: results.flatMap(({ day, rows }) =>
+      rows.map((row) => ({ ...row, dayOfWeek: day }))
+    ),
+    errors: results.flatMap(({ errors }) => errors),
+  }
 }
 
 async function createGroup(

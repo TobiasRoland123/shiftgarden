@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import type { DayOfWeek } from "./staff"
+import { weekdayAvailability } from "./staff"
 
 import {
   calculateGroupCapacityShortfall,
@@ -8,7 +9,9 @@ import {
   calculateLinkedActiveStaffCapacityMinutes,
   calculateWeeklyPedagogDemandMinutes,
   calculateWeeklyStaffDemandMinutes,
+  cloneStaffingRulesToAllWeekdays,
   groupStaffRulesByWeekday,
+  haveSameStaffingRulesOnAllWeekdays,
   type GroupCapacityStaffingRule,
   type GroupCapacityStaffMember,
 } from "./groups"
@@ -182,5 +185,43 @@ describe("group staffing rule display grouping", () => {
       "07:00",
       "09:00",
     ])
+  })
+})
+
+describe("shared weekday staffing rules", () => {
+  const overlappingRules = [
+    weekdayRule({ startTime: "07:00", endTime: "12:00", minStaff: 2 }),
+    weekdayRule({
+      startTime: "10:00",
+      endTime: "15:00",
+      minStaff: 3,
+      minPedagogs: 2,
+    }),
+  ]
+
+  it("clones every overlapping rule independently to every weekday", () => {
+    const cloned = cloneStaffingRulesToAllWeekdays(overlappingRules)
+
+    expect(cloned).toHaveLength(weekdayAvailability.length * 2)
+    expect(cloned.filter((rule) => rule.dayOfWeek === "wednesday")).toEqual(
+      overlappingRules.map((rule) => ({ ...rule, dayOfWeek: "wednesday" }))
+    )
+    expect(cloned[0]).not.toBe(overlappingRules[0])
+    expect(cloned[0]).not.toBe(cloned[2])
+  })
+
+  it("recognizes identical multiple rules on every weekday", () => {
+    expect(
+      haveSameStaffingRulesOnAllWeekdays(
+        cloneStaffingRulesToAllWeekdays(overlappingRules)
+      )
+    ).toBe(true)
+  })
+
+  it("does not treat independently configured weekdays as shared", () => {
+    const cloned = cloneStaffingRulesToAllWeekdays(overlappingRules)
+    cloned.at(-1)!.minStaff = 4
+
+    expect(haveSameStaffingRulesOnAllWeekdays(cloned)).toBe(false)
   })
 })

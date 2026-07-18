@@ -6,7 +6,11 @@ import { useLocale, useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { formatWeekday, weekdayAvailability } from "@/lib/groups"
+import {
+  formatWeekday,
+  haveSameStaffingRulesOnAllWeekdays,
+  weekdayAvailability,
+} from "@/lib/groups"
 import { createGroup } from "./actions"
 
 type GroupFormState = {
@@ -114,26 +118,30 @@ function getInitialSnapshot(
 
 function getCurrentSnapshot(form: HTMLFormElement): GroupFormSnapshot {
   const formData = new FormData(form)
+  const isShared = formData.get("applyRulesToAllWeekdays") === "true"
+
+  function getRules(prefix: string) {
+    const rowCount = Number(formData.get(`${prefix}-rule-count`) ?? 0)
+
+    return Array.from({ length: rowCount }, (_, index) => {
+      const startTime =
+        formData.get(`${prefix}-${index}-startTime`)?.toString() ?? ""
+      const endTime =
+        formData.get(`${prefix}-${index}-endTime`)?.toString() ?? ""
+      const minPedagogs =
+        formData.get(`${prefix}-${index}-minPedagogs`)?.toString() ?? ""
+      const minStaff =
+        formData.get(`${prefix}-${index}-minStaff`)?.toString() ?? ""
+
+      return `${startTime}-${endTime}-${minPedagogs}-${minStaff}`
+    })
+  }
 
   return {
     name: formData.get("name")?.toString() ?? "",
     rules: Object.fromEntries(
       weekdayAvailability.map((day) => {
-        const rowCount = Number(formData.get(`${day}-rule-count`) ?? 0)
-        const rules = Array.from({ length: rowCount }, (_, index) => {
-          const startTime =
-            formData.get(`${day}-${index}-startTime`)?.toString() ?? ""
-          const endTime =
-            formData.get(`${day}-${index}-endTime`)?.toString() ?? ""
-          const minPedagogs =
-            formData.get(`${day}-${index}-minPedagogs`)?.toString() ?? ""
-          const minStaff =
-            formData.get(`${day}-${index}-minStaff`)?.toString() ?? ""
-
-          return `${startTime}-${endTime}-${minPedagogs}-${minStaff}`
-        })
-
-        return [day, rules]
+        return [day, getRules(isShared ? "shared" : day)]
       })
     ) as GroupFormSnapshot["rules"],
   }
@@ -154,9 +162,17 @@ function GroupForm({ action = createGroup, initialValues }: GroupFormProps) {
     action,
     initialCreateGroupState
   )
-  const [rulesByDay, setRulesByDay] = useState(() =>
-    getInitialRuleInputs(initialValues)
+  const initialRuleInputs = useMemo(
+    () => getInitialRuleInputs(initialValues),
+    [initialValues]
   )
+  const initiallyShared =
+    Boolean(initialValues?.rules?.length) &&
+    haveSameStaffingRulesOnAllWeekdays(initialValues?.rules ?? [])
+  const [applyRulesToAllWeekdays, setApplyRulesToAllWeekdays] =
+    useState(initiallyShared)
+  const [rulesByDay, setRulesByDay] = useState(initialRuleInputs)
+  const [sharedRules, setSharedRules] = useState(initialRuleInputs.monday)
   const initialSnapshot = useMemo(
     () =>
       getInitialSnapshot(initialValues, getInitialRuleInputs(initialValues)),
@@ -193,6 +209,135 @@ function GroupForm({ action = createGroup, initialValues }: GroupFormProps) {
       ...current,
       [day]: current[day].filter((rule) => rule.key !== key),
     }))
+  }
+
+  function updateRule(
+    rules: RuleInput[],
+    setRules: (rules: RuleInput[]) => void,
+    key: string,
+    field: Exclude<keyof RuleInput, "key">,
+    value: string
+  ) {
+    setRules(
+      rules.map((rule) =>
+        rule.key === key ? { ...rule, [field]: value } : rule
+      )
+    )
+  }
+
+  function toggleSharedRules(enabled: boolean) {
+    if (enabled) {
+      const sourceRules =
+        weekdayAvailability
+          .map((day) => rulesByDay[day])
+          .find((rules) => rules.length > 0) ?? []
+      setSharedRules(sourceRules.map((rule) => ({ ...rule })))
+    } else {
+      setRulesByDay(
+        Object.fromEntries(
+          weekdayAvailability.map((day) => [
+            day,
+            sharedRules.map((rule) => ({
+              ...rule,
+              key: `${day}-${crypto.randomUUID()}`,
+            })),
+          ])
+        ) as RuleInputsByDay
+      )
+    }
+
+    setApplyRulesToAllWeekdays(enabled)
+  }
+
+  function renderRules(
+    label: string,
+    prefix: string,
+    rules: RuleInput[],
+    add: () => void,
+    remove: (key: string) => void,
+    change: (
+      key: string,
+      field: Exclude<keyof RuleInput, "key">,
+      value: string
+    ) => void
+  ) {
+    return (
+      <div key={prefix} className="grid gap-3 rounded-md border p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-sm font-medium">{label}</div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={(event) => {
+              add()
+              updateHasChanges(event.currentTarget.form!)
+            }}
+          >
+            <Plus />
+            {t("form.addRule")}
+          </Button>
+        </div>
+
+        <input
+          name={`${prefix}-rule-count`}
+          type="hidden"
+          value={rules.length}
+        />
+
+        {rules.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("form.noRules")}</p>
+        ) : (
+          <div className="grid gap-3">
+            {rules.map((rule, index) => (
+              <div
+                key={rule.key}
+                className="grid gap-2 rounded-md bg-muted/30 p-3 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] sm:items-end"
+              >
+                {(
+                  [
+                    ["startTime", t("form.startTime"), "time"],
+                    ["endTime", t("form.endTime"), "time"],
+                    ["minPedagogs", t("form.minPedagogs"), "number"],
+                    ["minStaff", t("form.minStaff"), "number"],
+                  ] as const
+                ).map(([field, fieldLabel, type]) => (
+                  <label
+                    key={field}
+                    className="grid gap-1 text-xs font-medium text-muted-foreground"
+                  >
+                    {fieldLabel}
+                    <Input
+                      name={`${prefix}-${index}-${field}`}
+                      type={type}
+                      min={type === "number" ? 1 : undefined}
+                      step={type === "number" ? 1 : undefined}
+                      inputMode={type === "number" ? "numeric" : undefined}
+                      value={rule[field]}
+                      onChange={(event) =>
+                        change(rule.key, field, event.currentTarget.value)
+                      }
+                    />
+                  </label>
+                ))}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t("form.removeRule")}
+                  onClick={(event) => {
+                    remove(rule.key)
+                    updateHasChanges(event.currentTarget.form!)
+                  }}
+                >
+                  <Trash2 />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -245,100 +390,64 @@ function GroupForm({ action = createGroup, initialValues }: GroupFormProps) {
           </p>
         </div>
 
+        <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
+          <input
+            className="mt-1 size-4 accent-primary"
+            type="checkbox"
+            name="applyRulesToAllWeekdays"
+            value="true"
+            checked={applyRulesToAllWeekdays}
+            onChange={(event) => toggleSharedRules(event.currentTarget.checked)}
+          />
+          <span className="grid gap-1">
+            <span className="text-sm font-medium">
+              {t("form.applyRulesToAllWeekdays")}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {t("form.applyRulesToAllWeekdaysDescription")}
+            </span>
+          </span>
+        </label>
+
         <div className="grid gap-4">
-          {weekdayAvailability.map((day) => (
-            <div key={day} className="grid gap-3 rounded-md border p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="text-sm font-medium">
-                  {formatWeekday(day, tStaff)}
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={(event) => {
-                    addRule(day)
-                    updateHasChanges(event.currentTarget.form!)
-                  }}
-                >
-                  <Plus />
-                  {t("form.addRule")}
-                </Button>
-              </div>
-
-              <input
-                name={`${day}-rule-count`}
-                type="hidden"
-                value={rulesByDay[day].length}
-              />
-
-              {rulesByDay[day].length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  {t("form.noRules")}
-                </p>
-              ) : (
-                <div className="grid gap-3">
-                  {rulesByDay[day].map((rule, index) => (
-                    <div
-                      key={rule.key}
-                      className="grid gap-2 rounded-md bg-muted/30 p-3 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] sm:items-end"
-                    >
-                      <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-                        {t("form.startTime")}
-                        <Input
-                          name={`${day}-${index}-startTime`}
-                          type="time"
-                          defaultValue={rule.startTime}
-                        />
-                      </label>
-                      <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-                        {t("form.endTime")}
-                        <Input
-                          name={`${day}-${index}-endTime`}
-                          type="time"
-                          defaultValue={rule.endTime}
-                        />
-                      </label>
-                      <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-                        {t("form.minPedagogs")}
-                        <Input
-                          name={`${day}-${index}-minPedagogs`}
-                          type="number"
-                          min={1}
-                          step={1}
-                          inputMode="numeric"
-                          defaultValue={rule.minPedagogs}
-                        />
-                      </label>
-                      <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-                        {t("form.minStaff")}
-                        <Input
-                          name={`${day}-${index}-minStaff`}
-                          type="number"
-                          min={1}
-                          step={1}
-                          inputMode="numeric"
-                          defaultValue={rule.minStaff}
-                        />
-                      </label>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        aria-label={t("form.removeRule")}
-                        onClick={(event) => {
-                          removeRule(day, rule.key)
-                          updateHasChanges(event.currentTarget.form!)
-                        }}
-                      >
-                        <Trash2 />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+          {applyRulesToAllWeekdays
+            ? renderRules(
+                t("form.allWeekdays"),
+                "shared",
+                sharedRules,
+                () =>
+                  setSharedRules((current) => [
+                    ...current,
+                    createEmptyRule(`shared-${crypto.randomUUID()}`),
+                  ]),
+                (key) =>
+                  setSharedRules((current) =>
+                    current.filter((rule) => rule.key !== key)
+                  ),
+                (key, field, value) =>
+                  updateRule(sharedRules, setSharedRules, key, field, value)
+              )
+            : weekdayAvailability.map((day) =>
+                renderRules(
+                  formatWeekday(day, tStaff),
+                  day,
+                  rulesByDay[day],
+                  () => addRule(day),
+                  (key) => removeRule(day, key),
+                  (key, field, value) =>
+                    updateRule(
+                      rulesByDay[day],
+                      (rules) =>
+                        setRulesByDay((current) => ({
+                          ...current,
+                          [day]: rules,
+                        })),
+                      key,
+                      field,
+                      value
+                    )
+                )
               )}
-            </div>
-          ))}
         </div>
       </section>
 
