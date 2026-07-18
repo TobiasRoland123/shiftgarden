@@ -78,6 +78,16 @@ describe("shift schedule generation validation formatting", () => {
           endTime: "12:00",
           ruleIndex: 0,
         },
+        {
+          code: "fifo_end_order_inversion",
+          severity: "error",
+          message:
+            "Staff member staff-3 starts after staff-2 but ends earlier.",
+          dayOfWeek: "friday",
+          staffId: "staff-3",
+          startTime: "08:30",
+          endTime: "13:30",
+        },
       ],
     }
 
@@ -85,6 +95,10 @@ describe("shift schedule generation validation formatting", () => {
 
     expect(feedback).toContain("- outside_availability:")
     expect(feedback).toContain("- min_staff_unmet:")
+    expect(feedback).toContain("- fifo_end_order_inversion:")
+    expect(feedback).toContain(
+      "Staff member staff-3 starts after staff-2 but ends earlier. (friday, staff staff-3, 08:30-13:30)"
+    )
     expect(feedback).toContain("Third outside availability issue.")
     expect(feedback).not.toContain("Fourth outside availability issue.")
   })

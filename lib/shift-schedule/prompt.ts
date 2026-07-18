@@ -21,7 +21,10 @@ Hard constraints:
    - at least minStaff staff members are working
    - at least minPedagogs staff members with role "pedagog" are working
 5. Do not assign overlapping shifts to the same person.
-6. Shifts must stay within the rule startTime and endTime.
+6. Enforce first-in-first-out shift endings on each day: a staff member who starts earlier must not finish later than a staff member who starts later.
+7. Shifts must stay within the rule startTime and endTime.
+
+Hard constraints always take precedence over every optimization goal below.
 
 Optimization goals:
 1. Distribute hours fairly across staff.
