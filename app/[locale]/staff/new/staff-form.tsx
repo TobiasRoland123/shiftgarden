@@ -1,7 +1,8 @@
 "use client"
 
-import { useActionState, useMemo, useState } from "react"
+import { startTransition, useActionState, useMemo } from "react"
 import { useLocale, useTranslations } from "next-intl"
+import { useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -52,65 +53,45 @@ function toTimeInputValue(time?: string) {
   return time?.slice(0, 5)
 }
 
-type StaffFormSnapshot = {
+type AvailabilityFieldName = `${(typeof weekdayAvailability)[number]}-${
+  | "start"
+  | "end"}`
+
+type StaffFormFields = {
   firstName: string
   lastName: string
   role: string
   maxHoursPerWeek: string
   active: boolean
-  availability: Record<(typeof weekdayAvailability)[number], string>
-}
+} & Record<AvailabilityFieldName, string>
 
-function getInitialSnapshot(
+function getDefaultValues(
   initialValues: StaffFormInitialValues | undefined,
   availabilityByDay: Map<string, StaffFormAvailability>
-): StaffFormSnapshot {
+): StaffFormFields {
   return {
     firstName: initialValues?.firstName ?? "",
     lastName: initialValues?.lastName ?? "",
     role: initialValues?.role ?? "",
     maxHoursPerWeek: initialValues?.maxHoursPerWeek?.toString() ?? "",
     active: initialValues?.active ?? true,
-    availability: Object.fromEntries(
-      weekdayAvailability.map((day) => {
+    ...Object.fromEntries(
+      weekdayAvailability.flatMap((day) => {
         const availability = availabilityByDay.get(day)
 
         return [
-          day,
-          `${toTimeInputValue(availability?.startAvailabilityTime) ?? ""}-${
-            toTimeInputValue(availability?.endAvailabilityTime) ?? ""
-          }`,
+          [
+            `${day}-start`,
+            toTimeInputValue(availability?.startAvailabilityTime) ?? "",
+          ],
+          [
+            `${day}-end`,
+            toTimeInputValue(availability?.endAvailabilityTime) ?? "",
+          ],
         ]
       })
-    ) as StaffFormSnapshot["availability"],
-  }
-}
-
-function getCurrentSnapshot(form: HTMLFormElement): StaffFormSnapshot {
-  const formData = new FormData(form)
-
-  return {
-    firstName: formData.get("firstName")?.toString() ?? "",
-    lastName: formData.get("lastName")?.toString() ?? "",
-    role: formData.get("role")?.toString() ?? "",
-    maxHoursPerWeek: formData.get("maxHoursPerWeek")?.toString() ?? "",
-    active: formData.get("active") === "on",
-    availability: Object.fromEntries(
-      weekdayAvailability.map((day) => [
-        day,
-        `${formData.get(`${day}-start`)?.toString() ?? ""}-${
-          formData.get(`${day}-end`)?.toString() ?? ""
-        }`,
-      ])
-    ) as StaffFormSnapshot["availability"],
-  }
-}
-
-function hasSnapshotChanges(
-  currentSnapshot: StaffFormSnapshot,
-  initialSnapshot: StaffFormSnapshot
-) {
-  return JSON.stringify(currentSnapshot) !== JSON.stringify(initialSnapshot)
+    ),
+  } as StaffFormFields
 }
 
 function StaffForm({ action = createStaff, initialValues }: StaffFormProps) {
@@ -130,27 +111,29 @@ function StaffForm({ action = createStaff, initialValues }: StaffFormProps) {
       ),
     [initialValues?.availability]
   )
-  const initialSnapshot = useMemo(
-    () => getInitialSnapshot(initialValues, availabilityByDay),
+  const defaultValues = useMemo(
+    () => getDefaultValues(initialValues, availabilityByDay),
     [initialValues, availabilityByDay]
   )
+  const {
+    register,
+    handleSubmit,
+    formState: { isDirty },
+  } = useForm<StaffFormFields>({ defaultValues })
   const shouldTrackChanges = Boolean(initialValues?.id)
-  const [hasChanges, setHasChanges] = useState(!shouldTrackChanges)
+  const submitForm = handleSubmit((_fields, event) => {
+    const form = event?.target
 
-  function updateHasChanges(form: HTMLFormElement) {
-    if (!shouldTrackChanges) {
-      return
+    if (form instanceof HTMLFormElement) {
+      startTransition(() => formAction(new FormData(form)))
     }
-
-    setHasChanges(hasSnapshotChanges(getCurrentSnapshot(form), initialSnapshot))
-  }
+  })
 
   return (
     <form
       action={formAction}
       className="flex max-w-3xl flex-col gap-8"
-      onChange={(event) => updateHasChanges(event.currentTarget)}
-      onInput={(event) => updateHasChanges(event.currentTarget)}
+      onSubmit={submitForm}
     >
       <input name="locale" type="hidden" value={locale} />
       {initialValues?.id ? (
@@ -179,30 +162,27 @@ function StaffForm({ action = createStaff, initialValues }: StaffFormProps) {
         <label className="grid gap-2 text-sm font-medium">
           {t("form.firstName")}
           <Input
-            name="firstName"
+            {...register("firstName")}
             required
             autoComplete="given-name"
-            defaultValue={initialValues?.firstName}
           />
         </label>
 
         <label className="grid gap-2 text-sm font-medium">
           {t("form.lastName")}
           <Input
-            name="lastName"
+            {...register("lastName")}
             required
             autoComplete="family-name"
-            defaultValue={initialValues?.lastName}
           />
         </label>
 
         <label className="grid gap-2 text-sm font-medium">
           {t("form.role")}
           <select
-            name="role"
+            {...register("role")}
             required
             className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            defaultValue={initialValues?.role ?? ""}
           >
             <option value="" disabled>
               {t("form.chooseRole")}
@@ -218,21 +198,19 @@ function StaffForm({ action = createStaff, initialValues }: StaffFormProps) {
         <label className="grid gap-2 text-sm font-medium">
           {t("form.maxHours")}
           <Input
-            name="maxHoursPerWeek"
+            {...register("maxHoursPerWeek")}
             type="number"
             required
             min={1}
             step={1}
             inputMode="numeric"
-            defaultValue={initialValues?.maxHoursPerWeek}
           />
         </label>
 
         <label className="flex items-center gap-2 text-sm font-medium sm:col-span-2">
           <input
-            name="active"
+            {...register("active")}
             type="checkbox"
-            defaultChecked={initialValues?.active ?? true}
             className="size-4 rounded border-input"
           />
           {t("form.active")}
@@ -249,8 +227,6 @@ function StaffForm({ action = createStaff, initialValues }: StaffFormProps) {
 
         <div className="grid gap-3">
           {weekdayAvailability.map((day) => {
-            const availability = availabilityByDay.get(day)
-
             return (
               <div
                 key={day}
@@ -261,23 +237,11 @@ function StaffForm({ action = createStaff, initialValues }: StaffFormProps) {
                 </div>
                 <label className="grid gap-1 text-xs font-medium text-muted-foreground">
                   {t("form.startTime")}
-                  <Input
-                    name={`${day}-start`}
-                    type="time"
-                    defaultValue={toTimeInputValue(
-                      availability?.startAvailabilityTime
-                    )}
-                  />
+                  <Input {...register(`${day}-start`)} type="time" />
                 </label>
                 <label className="grid gap-1 text-xs font-medium text-muted-foreground">
                   {t("form.endTime")}
-                  <Input
-                    name={`${day}-end`}
-                    type="time"
-                    defaultValue={toTimeInputValue(
-                      availability?.endAvailabilityTime
-                    )}
-                  />
+                  <Input {...register(`${day}-end`)} type="time" />
                 </label>
               </div>
             )
@@ -286,7 +250,10 @@ function StaffForm({ action = createStaff, initialValues }: StaffFormProps) {
       </section>
 
       <div className="flex items-center gap-2">
-        <Button type="submit" disabled={isPending || !hasChanges}>
+        <Button
+          type="submit"
+          disabled={isPending || (shouldTrackChanges && !isDirty)}
+        >
           {isPending ? t("form.saving") : t("form.save")}
         </Button>
       </div>

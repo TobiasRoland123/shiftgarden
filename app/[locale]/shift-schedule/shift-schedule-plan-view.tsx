@@ -1,10 +1,13 @@
 "use client"
 
-import type { CSSProperties } from "react"
 import { useTranslations } from "next-intl"
 
-import type { GeneratedSchedule } from "@/lib/shift-schedule/schemas"
 import type { AcceptedSchedulePlan } from "@/lib/shift-schedule/validation-types"
+import {
+  getShiftBarGeometry,
+  getTimelineBounds,
+  MINUTES_PER_HOUR,
+} from "@/lib/shift-schedule/timeline"
 import { CopyJsonButton } from "./copy-json-button"
 
 type ShiftSchedulePlanViewProps = {
@@ -19,9 +22,6 @@ function getStaffName(staffById: Record<string, string>, staffId: string) {
   return staffById[staffId] ?? staffId
 }
 
-const MINUTES_PER_HOUR = 60
-const DEFAULT_START_HOUR = 8
-const DEFAULT_END_HOUR = 17
 const shiftColors = [
   "border-emerald-600/40 bg-emerald-600 text-white dark:bg-emerald-700",
   "border-sky-600/40 bg-sky-600 text-white dark:bg-sky-700",
@@ -30,37 +30,8 @@ const shiftColors = [
   "border-rose-600/40 bg-rose-600 text-white dark:bg-rose-700",
 ] as const
 
-function timeToMinutes(time: string) {
-  const [hours, minutes] = time.split(":").map(Number)
-  return hours * MINUTES_PER_HOUR + minutes
-}
-
 function formatHour(minutes: number) {
   return `${String(minutes / MINUTES_PER_HOUR).padStart(2, "0")}:00`
-}
-
-function getTimelineBounds(plan: GeneratedSchedule) {
-  const shifts = plan.days.flatMap((day) => day.shifts)
-
-  if (shifts.length === 0) {
-    return {
-      end: DEFAULT_END_HOUR * MINUTES_PER_HOUR,
-      start: DEFAULT_START_HOUR * MINUTES_PER_HOUR,
-    }
-  }
-
-  return {
-    end:
-      Math.ceil(
-        Math.max(...shifts.map((shift) => timeToMinutes(shift.endTime))) /
-          MINUTES_PER_HOUR
-      ) * MINUTES_PER_HOUR,
-    start:
-      Math.floor(
-        Math.min(...shifts.map((shift) => timeToMinutes(shift.startTime))) /
-          MINUTES_PER_HOUR
-      ) * MINUTES_PER_HOUR,
-  }
 }
 
 function getStaffColor(staffId: string) {
@@ -178,10 +149,14 @@ function ShiftSchedulePlanView({
                       name: staffName,
                       start: shift.startTime,
                     })
-                    const style: CSSProperties = {
-                      left: `${((timeToMinutes(shift.startTime) - timelineStart) / timelineDuration) * 100}%`,
-                      width: `${((timeToMinutes(shift.endTime) - timeToMinutes(shift.startTime)) / timelineDuration) * 100}%`,
-                    }
+                    const { leftPercent, widthPercent } = getShiftBarGeometry(
+                      shift.startTime,
+                      shift.endTime,
+                      {
+                        end: timelineEnd,
+                        start: timelineStart,
+                      }
+                    )
 
                     return (
                       <div
@@ -198,7 +173,10 @@ function ShiftSchedulePlanView({
                           <div
                             aria-label={shiftLabel}
                             className={`absolute inset-y-2 min-w-1 overflow-hidden rounded-md border px-2.5 shadow-sm ${getStaffColor(shift.staffId)}`}
-                            style={style}
+                            style={{
+                              left: `${leftPercent}%`,
+                              width: `${widthPercent}%`,
+                            }}
                             title={shiftLabel}
                           >
                             <span className="flex h-full items-center truncate text-xs font-semibold tabular-nums">

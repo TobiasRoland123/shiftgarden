@@ -1,12 +1,10 @@
 import { getTranslations } from "next-intl/server"
-import { asc } from "drizzle-orm"
 import type { ReactNode } from "react"
 
 import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
-import { db } from "@/lib/db"
-import { staffMembers } from "@/lib/db/schema"
 import { formatStaffRole } from "@/lib/staff"
+import { getStaffMembers } from "@/lib/staff/data"
 
 function CellLink({ children, href }: { children: ReactNode; href: string }) {
   return (
@@ -18,10 +16,7 @@ function CellLink({ children, href }: { children: ReactNode; href: string }) {
 
 export default async function StaffPage() {
   const t = await getTranslations("staff")
-  const staff = await db
-    .select()
-    .from(staffMembers)
-    .orderBy(asc(staffMembers.lastName), asc(staffMembers.firstName))
+  const staff = await getStaffMembers()
 
   return (
     <div className="flex min-h-svh flex-col gap-6 p-6">

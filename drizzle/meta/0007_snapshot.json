@@ -1,6 +1,6 @@
 {
-  "id": "e9b6824a-5d9f-42bd-968f-4cab7461e4ce",
-  "prevId": "69eb041f-ba73-4150-acf5-cac40141df7f",
+  "id": "1eeb83d1-9e23-4f4f-94df-26c24d170d60",
+  "prevId": "83859350-0a63-4c3f-a0aa-b6b030a7486e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -162,6 +162,61 @@
         }
       },
       "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.institution_opening_hours": {
+      "name": "institution_opening_hours",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "day_of_week": {
+          "name": "day_of_week",
+          "type": "day_of_week",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_time": {
+          "name": "start_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_time": {
+          "name": "end_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "institution_opening_hours_day_of_week_idx": {
+          "name": "institution_opening_hours_day_of_week_idx",
+          "columns": [
+            {
+              "expression": "day_of_week",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -377,6 +432,13 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
+        },
+        "validation_warnings": {
+          "name": "validation_warnings",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "model": {
           "name": "model",

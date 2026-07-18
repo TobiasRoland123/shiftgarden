@@ -6,6 +6,8 @@ const weekdayAvailability = [
   "wednesday",
   "thursday",
   "friday",
+  "saturday",
+  "sunday",
 ] as const
 
 const daysOfWeek = [

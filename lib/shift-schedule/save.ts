@@ -4,6 +4,7 @@ import type {
 } from "@/lib/shift-schedule/schemas"
 import type {
   AcceptedSchedulePlan,
+  ScheduleValidationResult,
   ScheduleValidationWarning,
 } from "@/lib/shift-schedule/validation-types"
 
@@ -21,6 +22,18 @@ type ShiftScheduleShiftInsertValues = {
   dayOfWeek: GeneratedSchedule["days"][number]["dayOfWeek"]
   startTime: string
   endTime: string
+}
+
+type ShiftScheduleGenerationAttemptInsertValues = {
+  generationId: string
+  groupId: string
+  status: "validation_failed" | "accepted"
+  attemptNumber: number
+  model: string
+  inputJson: ScheduleInput
+  outputJson: GeneratedSchedule
+  validationErrors: ScheduleValidationResult["issues"]
+  acceptedPlanId: string | null
 }
 
 function buildShiftSchedulePlanInsertValues({
@@ -59,9 +72,46 @@ function buildShiftScheduleShiftInsertValues({
   )
 }
 
+function buildShiftScheduleGenerationAttemptInsertValues({
+  acceptedPlanId = null,
+  attemptNumber,
+  generationId,
+  model,
+  plan,
+  scheduleInput,
+  validation,
+}: {
+  acceptedPlanId?: string | null
+  attemptNumber: number
+  generationId: string
+  model: string
+  plan: GeneratedSchedule
+  scheduleInput: ScheduleInput
+  validation: ScheduleValidationResult
+}): ShiftScheduleGenerationAttemptInsertValues {
+  return {
+    generationId,
+    groupId: scheduleInput.group.id,
+    status: validation.valid ? "accepted" : "validation_failed",
+    attemptNumber,
+    model,
+    inputJson: scheduleInput,
+    outputJson: plan,
+    validationErrors: validation.issues.filter(
+      (issue) => issue.severity === "error"
+    ),
+    acceptedPlanId,
+  }
+}
+
 export {
+  buildShiftScheduleGenerationAttemptInsertValues,
   buildShiftSchedulePlanInsertValues,
   buildShiftScheduleShiftInsertValues,
 }
 
-export type { ShiftSchedulePlanInsertValues, ShiftScheduleShiftInsertValues }
+export type {
+  ShiftScheduleGenerationAttemptInsertValues,
+  ShiftSchedulePlanInsertValues,
+  ShiftScheduleShiftInsertValues,
+}

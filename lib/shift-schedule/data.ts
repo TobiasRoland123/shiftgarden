@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import {
   groups,
   groupStaffRules,
+  institutionOpeningHours,
   staffMemberAvailability,
   staffMemberGroups,
   staffMembers,
@@ -67,10 +68,23 @@ async function getScheduleInputForGroup(
     .where(eq(groupStaffRules.groupId, selectedGroup.id))
     .orderBy(asc(groupStaffRules.dayOfWeek), asc(groupStaffRules.startTime))
 
+  const openingHours = await db
+    .select({
+      dayOfWeek: institutionOpeningHours.dayOfWeek,
+      startTime: institutionOpeningHours.startTime,
+      endTime: institutionOpeningHours.endTime,
+    })
+    .from(institutionOpeningHours)
+    .orderBy(
+      asc(institutionOpeningHours.dayOfWeek),
+      asc(institutionOpeningHours.startTime)
+    )
+
   return buildScheduleInput({
     group: selectedGroup,
     linkedStaff,
     availability,
+    openingHours,
     rules,
   })
 }
