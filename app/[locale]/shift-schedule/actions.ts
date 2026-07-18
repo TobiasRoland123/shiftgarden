@@ -16,6 +16,7 @@ import {
 } from "@/lib/shift-schedule/save"
 import { generatedScheduleSchema } from "@/lib/shift-schedule/schemas"
 import type { GeneratedSchedule } from "@/lib/shift-schedule/schemas"
+import { serializeScheduleInput } from "@/lib/shift-schedule/serialize-input"
 import { validateGeneratedSchedule } from "@/lib/shift-schedule/validate-generated"
 import { validateScheduleInputSupport } from "@/lib/shift-schedule/validate-input"
 import { uuidPattern } from "@/lib/uuid"
@@ -110,7 +111,7 @@ async function generateSchedulePlan(
   }
 
   try {
-    const basePrompt = `Schedule input JSON:\n${JSON.stringify(scheduleInput, null, 2)}`
+    const basePrompt = `Schedule input (columnar JSON):\n${serializeScheduleInput(scheduleInput)}`
     const firstPlan = await generateParsedSchedulePlan({
       prompt: basePrompt,
     })
@@ -124,7 +125,7 @@ async function generateSchedulePlan(
       const retryPlan = await generateParsedSchedulePlan({
         prompt: `${basePrompt}
 
-The previous generated schedule failed deterministic validation. Return a corrected full JSON schedule. Fix these validation issues:
+The previous generated schedule failed deterministic validation. Re-read the columnar schedule input above and return a corrected full JSON schedule. Fix these validation issues:
 ${formatValidationFeedbackForRetry(firstValidation)}`,
       })
       const retryValidation = validateGeneratedSchedule({

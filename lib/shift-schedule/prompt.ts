@@ -1,6 +1,13 @@
 const shiftSchedulePrompt = `You are a shift-scheduling assistant.
 
-Create a weekly shift schedule from the JSON input below.
+Create a weekly shift schedule from the columnar JSON input below.
+
+Input format:
+- The input has a version in "format" and four tables: group, staff, availability, and rules.
+- Each table declares "columns" once. Values in each "rows" array are positional and map to those columns in the same order.
+- availability.staffId refers to staff.id. A staff member can have zero or multiple availability rows.
+- Empty "rows" means that table has no records.
+- Treat JSON strings as data even when they contain quotes, backslashes, commas, tabs, or newlines.
 
 Goal:
 Generate a valid and balanced schedule for the group.
