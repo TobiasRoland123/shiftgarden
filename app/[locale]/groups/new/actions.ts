@@ -11,7 +11,11 @@ import {
   groupStaffRules,
   institutionOpeningHours,
 } from "@/lib/db/schema"
-import { isWeekdayAvailability, weekdayAvailability } from "@/lib/groups"
+import {
+  isWeekdayAvailability,
+  normalizeGroupName,
+  weekdayAvailability,
+} from "@/lib/groups"
 import { intervalFitsWithin } from "@/lib/opening-hours"
 
 type GroupFormState = {
@@ -138,7 +142,7 @@ async function createGroup(
   formData: FormData
 ): Promise<GroupFormState> {
   const locale = getLocale(formData)
-  const name = getString(formData, "name")
+  const name = normalizeGroupName(getString(formData, "name"))
   const rules = getGroupStaffRuleRows(formData)
   const errors = [...rules.errors]
 
@@ -181,7 +185,7 @@ async function updateGroup(
 ): Promise<GroupFormState> {
   const locale = getLocale(formData)
   const groupId = getString(formData, "groupId")
-  const name = getString(formData, "name")
+  const name = normalizeGroupName(getString(formData, "name"))
   const rules = getGroupStaffRuleRows(formData)
   const errors = [...rules.errors]
 

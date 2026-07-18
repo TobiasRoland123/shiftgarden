@@ -40,8 +40,15 @@
     {
       "idx": 5,
       "version": "7",
-      "when": 1784398714958,
-      "tag": "0005_crazy_psynapse",
+      "when": 1784398361670,
+      "tag": "0005_fixed_kang",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784414901556,
+      "tag": "0006_unusual_lester",
       "breakpoints": true
     }
   ]

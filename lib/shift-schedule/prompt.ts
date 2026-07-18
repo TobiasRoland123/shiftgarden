@@ -23,7 +23,10 @@ Hard constraints:
    - at least minPedagogs staff members with role "pedagog" are working
 5. Do not assign overlapping shifts to the same person.
 6. Every shift must fit entirely within one institution opening-hours interval. Shifts may extend outside staffing-rule periods.
-7. Return exactly one entry for each of Monday through Sunday, including days with no shifts.
+7. Enforce first-in-first-out shift endings on each day: a staff member who starts earlier must not finish later than a staff member who starts later.
+8. Return exactly one entry for each of Monday through Sunday, including days with no shifts.
+
+Hard constraints always take precedence over every optimization goal below.
 
 Optimization goals:
 1. Distribute hours fairly across staff.
