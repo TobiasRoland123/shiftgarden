@@ -103,4 +103,43 @@ describe("generateWithValidationRetry", () => {
       1, 2,
     ])
   })
+
+  it("attaches FIFO validation details to the retry prompt", async () => {
+    const prompts: string[] = []
+    const generate = vi.fn(async (prompt: string) => {
+      prompts.push(prompt)
+      return plan("group-1")
+    })
+    const validate = vi
+      .fn()
+      .mockReturnValueOnce({
+        valid: false,
+        issues: [
+          {
+            code: "fifo_end_order_inversion" as const,
+            severity: "error" as const,
+            message: "Staff member samuel starts after anna but ends earlier.",
+            dayOfWeek: "friday",
+            staffId: "samuel",
+            startTime: "08:30",
+            endTime: "13:30",
+          },
+        ],
+      })
+      .mockReturnValueOnce({ valid: true, issues: [] })
+
+    const result = await generateWithValidationRetry({
+      basePrompt: "input",
+      generate,
+      onValidationFailed: vi.fn(async () => undefined),
+      scheduleInput,
+      validate,
+    })
+
+    expect(result.validation.valid).toBe(true)
+    expect(prompts[1]).toContain("fifo_end_order_inversion")
+    expect(prompts[1]).toContain(
+      "Staff member samuel starts after anna but ends earlier. (friday, staff samuel, 08:30-13:30)"
+    )
+  })
 })

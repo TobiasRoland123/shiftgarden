@@ -9,7 +9,10 @@ const mocks = vi.hoisted(() => {
   return { asc, from, orderBy, select }
 })
 
-vi.mock("drizzle-orm", () => ({ asc: mocks.asc }))
+vi.mock("drizzle-orm", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("drizzle-orm")>()),
+  asc: mocks.asc,
+}))
 vi.mock("@/lib/db", () => ({ db: { select: mocks.select } }))
 
 import { staffMembers } from "@/lib/db/schema"
