@@ -14,11 +14,9 @@ function getString(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : ""
 }
 
-function revalidateMembershipPaths(staffMemberId: string, groupId: string) {
-  revalidatePath(`/staff/${staffMemberId}`)
-  revalidatePath(`/groups/${groupId}`)
-  revalidatePath(`/da/staff/${staffMemberId}`)
-  revalidatePath(`/da/groups/${groupId}`)
+function revalidateMembershipPaths() {
+  revalidatePath("/[locale]/staff/[id]", "page")
+  revalidatePath("/[locale]/groups/[id]", "page")
 }
 
 async function linkGroupToStaff(formData: FormData) {
@@ -51,7 +49,7 @@ async function linkGroupToStaff(formData: FormData) {
     .values({ staffMemberId, groupId })
     .onConflictDoNothing()
 
-  revalidateMembershipPaths(staffMemberId, groupId)
+  revalidateMembershipPaths()
 }
 
 async function unlinkGroupFromStaff(formData: FormData) {
@@ -71,7 +69,7 @@ async function unlinkGroupFromStaff(formData: FormData) {
       )
     )
 
-  revalidateMembershipPaths(staffMemberId, groupId)
+  revalidateMembershipPaths()
 }
 
 export { linkGroupToStaff, unlinkGroupFromStaff }
