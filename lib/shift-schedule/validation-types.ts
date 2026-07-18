@@ -9,6 +9,7 @@ type ScheduleValidationIssueCode =
   | "outside_availability"
   | "max_hours_exceeded"
   | "overlapping_shift"
+  | "cross_group_conflict"
   | "shift_outside_staffing_rule"
   | "min_staff_unmet"
   | "min_pedagogs_unmet"
@@ -24,6 +25,9 @@ type ScheduleValidationIssue = {
   startTime?: string
   endTime?: string
   ruleIndex?: number
+  conflictingGroupId?: string
+  conflictingGroupName?: string
+  conflictingPlanId?: string
 }
 
 type ScheduleValidationResult = {

@@ -176,6 +176,7 @@
     "copyJson": "Copy JSON",
     "copiedJson": "Copied",
     "generatePlan": "Generate plan",
+    "weekStart": "Week starting Monday",
     "generatingPlan": "Generating...",
     "generatedTitle": "AI schedule plan",
     "generatedDescription": "Generate a preview plan from the selected group's staff, availability, and staffing rules.",
@@ -183,6 +184,11 @@
     "generationErrorTitle": "Plan could not be generated",
     "savedTitle": "Plan saved",
     "savedDescription": "Saved as plan {planId}.",
+    "archivePlan": "Archive plan",
+    "status": {
+      "active": "Active",
+      "archived": "Archived"
+    },
     "warningsTitle": "Warnings",
     "calendarTitle": "Week overview",
     "calendarDescription": "Shift placement and duration on a shared timeline.",
@@ -196,6 +202,8 @@
     "groupNotFound": "That group could not be found. Choose another group from the list.",
     "table": {
       "group": "Group",
+      "weekStart": "Week",
+      "status": "Status",
       "createdAt": "Created",
       "model": "Model",
       "warnings": "Warnings",
@@ -204,6 +212,8 @@
     },
     "detail": {
       "group": "Group",
+      "weekStart": "Week",
+      "status": "Status",
       "createdAt": "Created",
       "model": "Model",
       "warnings": "Warnings"

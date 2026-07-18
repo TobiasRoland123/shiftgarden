@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "shift_schedule_plans_active_group_week_idx" ON "shift_schedule_plans" USING btree ("group_id","week_start") WHERE "shift_schedule_plans"."status" = 'active';

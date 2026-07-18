@@ -7,6 +7,7 @@ import { db } from "@/lib/db"
 import { groups } from "@/lib/db/schema"
 import { getScheduleInputForGroup } from "@/lib/shift-schedule/data"
 import { uuidPattern } from "@/lib/uuid"
+import { currentMonday } from "@/lib/shift-schedule/week"
 import { CopyJsonButton } from "./copy-json-button"
 import { GenerateSchedulePlan } from "./generate-schedule-plan"
 
@@ -48,9 +49,7 @@ export default async function ShiftSchedulePage({
     <div className="flex min-h-svh flex-col gap-6 p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-medium tracking-normal">
-            {t("title")}
-          </h1>
+          <h1 className="text-2xl font-medium tracking-normal">{t("title")}</h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
             {t("description")}
           </p>
@@ -107,6 +106,7 @@ export default async function ShiftSchedulePage({
             copiedLabel={t("copiedJson")}
             copyLabel={t("copyJson")}
             groupId={schedulePreview.group.id}
+            defaultWeekStart={currentMonday()}
             staff={schedulePreview.staff.map((staffMember) => ({
               id: staffMember.id,
               name: `${staffMember.firstName} ${staffMember.lastName}`,

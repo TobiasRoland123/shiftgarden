@@ -28,6 +28,13 @@ function formatDateTime(date: Date, locale: string) {
   }).format(date)
 }
 
+function formatWeekStart(weekStart: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(`${weekStart}T00:00:00Z`))
+}
+
 export default async function SavedPlansPage({ params }: SavedPlansPageProps) {
   const { locale } = await params
   const t = await getTranslations("shiftSchedule")
@@ -37,6 +44,8 @@ export default async function SavedPlansPage({ params }: SavedPlansPageProps) {
       createdAt: shiftSchedulePlans.createdAt,
       groupName: groups.name,
       model: shiftSchedulePlans.model,
+      status: shiftSchedulePlans.status,
+      weekStart: shiftSchedulePlans.weekStart,
       warnings: shiftSchedulePlans.warnings,
     })
     .from(shiftSchedulePlans)
@@ -74,18 +83,16 @@ export default async function SavedPlansPage({ params }: SavedPlansPageProps) {
           <table className="w-full text-left text-sm">
             <thead className="border-b bg-muted/50 text-xs text-muted-foreground">
               <tr>
+                <th className="px-4 py-3 font-medium">{t("table.group")}</th>
                 <th className="px-4 py-3 font-medium">
-                  {t("table.group")}
+                  {t("table.weekStart")}
                 </th>
+                <th className="px-4 py-3 font-medium">{t("table.status")}</th>
                 <th className="px-4 py-3 font-medium">
                   {t("table.createdAt")}
                 </th>
-                <th className="px-4 py-3 font-medium">
-                  {t("table.model")}
-                </th>
-                <th className="px-4 py-3 font-medium">
-                  {t("table.warnings")}
-                </th>
+                <th className="px-4 py-3 font-medium">{t("table.model")}</th>
+                <th className="px-4 py-3 font-medium">{t("table.warnings")}</th>
                 <th className="px-4 py-3 font-medium">
                   <span className="sr-only">{t("table.actions")}</span>
                 </th>
@@ -102,6 +109,16 @@ export default async function SavedPlansPage({ params }: SavedPlansPageProps) {
                   >
                     <td className="p-0 font-medium">
                       <CellLink href={href}>{plan.groupName}</CellLink>
+                    </td>
+                    <td className="p-0">
+                      <CellLink href={href}>
+                        {formatWeekStart(plan.weekStart, locale)}
+                      </CellLink>
+                    </td>
+                    <td className="p-0 capitalize">
+                      <CellLink href={href}>
+                        {t(`status.${plan.status}`)}
+                      </CellLink>
                     </td>
                     <td className="p-0">
                       <CellLink href={href}>

@@ -176,6 +176,7 @@
     "copyJson": "Kopiér JSON",
     "copiedJson": "Kopieret",
     "generatePlan": "Generér plan",
+    "weekStart": "Uge med start mandag",
     "generatingPlan": "Genererer...",
     "generatedTitle": "AI-vagtplan",
     "generatedDescription": "Generér et udkast fra den valgte gruppes personale, tilgængelighed og bemandingsregler.",
@@ -183,6 +184,11 @@
     "generationErrorTitle": "Planen kunne ikke genereres",
     "savedTitle": "Plan gemt",
     "savedDescription": "Gemt som plan {planId}.",
+    "archivePlan": "Arkivér plan",
+    "status": {
+      "active": "Aktiv",
+      "archived": "Arkiveret"
+    },
     "warningsTitle": "Advarsler",
     "calendarTitle": "Ugeoverblik",
     "calendarDescription": "Vagternes placering og varighed på en fælles tidslinje.",
@@ -196,6 +202,8 @@
     "groupNotFound": "Gruppen blev ikke fundet. Vælg en anden gruppe fra listen.",
     "table": {
       "group": "Gruppe",
+      "weekStart": "Uge",
+      "status": "Status",
       "createdAt": "Oprettet",
       "model": "Model",
       "warnings": "Advarsler",
@@ -204,6 +212,8 @@
     },
     "detail": {
       "group": "Gruppe",
+      "weekStart": "Uge",
+      "status": "Status",
       "createdAt": "Oprettet",
       "model": "Model",
       "warnings": "Advarsler"

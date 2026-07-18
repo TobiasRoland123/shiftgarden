@@ -1,15 +1,18 @@
-import { asc, eq, inArray } from "drizzle-orm"
+import { and, asc, eq, inArray, ne } from "drizzle-orm"
 
 import { db } from "@/lib/db"
 import {
   groups,
   groupStaffRules,
+  shiftSchedulePlans,
+  shiftScheduleShifts,
   staffMemberAvailability,
   staffMemberGroups,
   staffMembers,
 } from "@/lib/db/schema"
 import { buildScheduleInput } from "@/lib/shift-schedule/build"
 import type { ScheduleInput } from "@/lib/shift-schedule/schemas"
+import type { ActivePlanShift } from "@/lib/shift-schedule/cross-group-conflicts"
 
 type GroupRecord = {
   id: string
@@ -94,4 +97,49 @@ async function getScheduleInputByGroupId(
   return getScheduleInputForGroup(selectedGroup)
 }
 
-export { getScheduleInputByGroupId, getScheduleInputForGroup }
+async function getActivePlanShiftsForWeek({
+  database = db,
+  excludedGroupId,
+  staffIds,
+  weekStart,
+}: {
+  database?: Pick<typeof db, "select">
+  excludedGroupId: string
+  staffIds: string[]
+  weekStart: string
+}): Promise<ActivePlanShift[]> {
+  if (staffIds.length === 0) {
+    return []
+  }
+
+  return database
+    .select({
+      dayOfWeek: shiftScheduleShifts.dayOfWeek,
+      endTime: shiftScheduleShifts.endTime,
+      groupId: shiftSchedulePlans.groupId,
+      groupName: groups.name,
+      planId: shiftSchedulePlans.id,
+      staffId: shiftScheduleShifts.staffMemberId,
+      startTime: shiftScheduleShifts.startTime,
+    })
+    .from(shiftScheduleShifts)
+    .innerJoin(
+      shiftSchedulePlans,
+      eq(shiftScheduleShifts.planId, shiftSchedulePlans.id)
+    )
+    .innerJoin(groups, eq(shiftSchedulePlans.groupId, groups.id))
+    .where(
+      and(
+        eq(shiftSchedulePlans.weekStart, weekStart),
+        eq(shiftSchedulePlans.status, "active"),
+        ne(shiftSchedulePlans.groupId, excludedGroupId),
+        inArray(shiftScheduleShifts.staffMemberId, staffIds)
+      )
+    )
+}
+
+export {
+  getActivePlanShiftsForWeek,
+  getScheduleInputByGroupId,
+  getScheduleInputForGroup,
+}

@@ -70,12 +70,14 @@ describe("shift schedule save values", () => {
         model: "openai/gpt-5.4",
         plan: generatedSchedule,
         scheduleInput,
+        weekStart: "2026-07-13",
       })
     ).toEqual({
       groupId: "group-1",
       inputJson: scheduleInput,
       warnings: ["Could not cover Tuesday."],
       model: "openai/gpt-5.4",
+      weekStart: "2026-07-13",
     })
   })
 

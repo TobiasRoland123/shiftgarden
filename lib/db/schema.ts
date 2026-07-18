@@ -1,5 +1,6 @@
 import {
   boolean,
+  date,
   index,
   integer,
   jsonb,
@@ -11,6 +12,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
 
 export const staffRole = pgEnum("staff_role", [
   "pedagog",
@@ -26,6 +28,11 @@ export const dayOfWeek = pgEnum("day_of_week", [
   "friday",
   "saturday",
   "sunday",
+])
+
+export const shiftSchedulePlanStatus = pgEnum("shift_schedule_plan_status", [
+  "active",
+  "archived",
 ])
 
 export const healthChecks = pgTable("health_checks", {
@@ -124,12 +131,21 @@ export const shiftSchedulePlans = pgTable(
     inputJson: jsonb("input_json").notNull(),
     warnings: jsonb("warnings").$type<string[]>().notNull(),
     model: text("model").notNull(),
+    weekStart: date("week_start").notNull(),
+    status: shiftSchedulePlanStatus("status").notNull().default("active"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
   (table) => [
     index("shift_schedule_plans_group_id_idx").on(table.groupId),
+    index("shift_schedule_plans_week_start_status_idx").on(
+      table.weekStart,
+      table.status
+    ),
+    uniqueIndex("shift_schedule_plans_active_group_week_idx")
+      .on(table.groupId, table.weekStart)
+      .where(sql`${table.status} = 'active'`),
     index("shift_schedule_plans_created_at_idx").on(table.createdAt),
   ]
 )

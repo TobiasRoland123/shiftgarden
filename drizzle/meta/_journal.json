@@ -36,6 +36,20 @@
       "when": 1780347441469,
       "tag": "0004_next_excalibur",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784398689042,
+      "tag": "0005_loud_boom_boom",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784398737953,
+      "tag": "0006_massive_violations",
+      "breakpoints": true
     }
   ]
 }

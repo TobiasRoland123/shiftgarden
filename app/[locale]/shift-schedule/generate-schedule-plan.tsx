@@ -16,6 +16,7 @@ type StaffOption = {
 type GenerateSchedulePlanProps = {
   copiedLabel: string
   copyLabel: string
+  defaultWeekStart: string
   groupId: string
   staff: StaffOption[]
 }
@@ -32,6 +33,7 @@ const initialState: GenerateSchedulePlanState = {}
 function GenerateSchedulePlan({
   copiedLabel,
   copyLabel,
+  defaultWeekStart,
   groupId,
   staff,
 }: GenerateSchedulePlanProps) {
@@ -53,8 +55,19 @@ function GenerateSchedulePlan({
             {t("generatedDescription")}
           </p>
         </div>
-        <form action={formAction}>
+        <form action={formAction} className="flex flex-col gap-2 sm:items-end">
           <input name="groupId" type="hidden" value={groupId} />
+          <label className="text-xs font-medium" htmlFor="weekStart">
+            {t("weekStart")}
+          </label>
+          <input
+            className="h-10 rounded-lg border border-input bg-background px-3 text-sm"
+            defaultValue={defaultWeekStart}
+            id="weekStart"
+            name="weekStart"
+            required
+            type="date"
+          />
           <Button disabled={isPending} type="submit">
             {isPending ? t("generatingPlan") : t("generatePlan")}
           </Button>

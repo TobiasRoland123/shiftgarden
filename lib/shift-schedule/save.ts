@@ -8,6 +8,7 @@ type ShiftSchedulePlanInsertValues = {
   inputJson: ScheduleInput
   warnings: string[]
   model: string
+  weekStart: string
 }
 
 type ShiftScheduleShiftInsertValues = {
@@ -22,16 +23,19 @@ function buildShiftSchedulePlanInsertValues({
   model,
   plan,
   scheduleInput,
+  weekStart,
 }: {
   model: string
   plan: GeneratedSchedule
   scheduleInput: ScheduleInput
+  weekStart: string
 }): ShiftSchedulePlanInsertValues {
   return {
     groupId: plan.groupId,
     inputJson: scheduleInput,
     warnings: plan.warnings,
     model,
+    weekStart,
   }
 }
 
@@ -58,7 +62,4 @@ export {
   buildShiftScheduleShiftInsertValues,
 }
 
-export type {
-  ShiftSchedulePlanInsertValues,
-  ShiftScheduleShiftInsertValues,
-}
+export type { ShiftSchedulePlanInsertValues, ShiftScheduleShiftInsertValues }

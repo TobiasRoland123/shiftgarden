@@ -15,6 +15,7 @@ import type { GeneratedSchedule } from "@/lib/shift-schedule/schemas"
 import { weekdays } from "@/lib/shift-schedule/schemas"
 import { uuidPattern } from "@/lib/uuid"
 import { ShiftSchedulePlanView } from "../../shift-schedule-plan-view"
+import { archiveSchedulePlan } from "../actions"
 
 type GeneratedScheduleDay = GeneratedSchedule["days"][number]["dayOfWeek"]
 
@@ -30,6 +31,13 @@ function formatDateTime(date: Date, locale: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date)
+}
+
+function formatWeekStart(weekStart: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "long",
+    timeZone: "UTC",
+  }).format(new Date(`${weekStart}T00:00:00Z`))
 }
 
 function isGeneratedScheduleDay(day: string): day is GeneratedScheduleDay {
@@ -53,6 +61,8 @@ export default async function SavedPlanDetailPage({
       groupId: shiftSchedulePlans.groupId,
       groupName: groups.name,
       model: shiftSchedulePlans.model,
+      status: shiftSchedulePlans.status,
+      weekStart: shiftSchedulePlans.weekStart,
       warnings: shiftSchedulePlans.warnings,
     })
     .from(shiftSchedulePlans)
@@ -125,17 +135,42 @@ export default async function SavedPlanDetailPage({
         <Button asChild variant="ghost" className="w-fit">
           <Link href="/shift-schedule/plans">{t("backToSavedPlans")}</Link>
         </Button>
-        <div>
-          <h1 className="text-2xl font-medium tracking-normal">
-            {savedPlan.groupName}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t("savedPlanDetailDescription")}
-          </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-medium tracking-normal">
+              {savedPlan.groupName}
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t("savedPlanDetailDescription")}
+            </p>
+          </div>
+          {savedPlan.status === "active" ? (
+            <form action={archiveSchedulePlan}>
+              <input name="planId" type="hidden" value={savedPlan.id} />
+              <input name="locale" type="hidden" value={locale} />
+              <Button type="submit" variant="outline">
+                {t("archivePlan")}
+              </Button>
+            </form>
+          ) : null}
         </div>
       </div>
 
-      <section className="grid gap-4 rounded-lg border p-4 sm:grid-cols-4">
+      <section className="grid gap-4 rounded-lg border p-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div>
+          <div className="text-xs font-medium text-muted-foreground">
+            {t("detail.weekStart")}
+          </div>
+          <div className="mt-1 text-sm">
+            {formatWeekStart(savedPlan.weekStart, locale)}
+          </div>
+        </div>
+        <div>
+          <div className="text-xs font-medium text-muted-foreground">
+            {t("detail.status")}
+          </div>
+          <div className="mt-1 text-sm">{t(`status.${savedPlan.status}`)}</div>
+        </div>
         <div>
           <div className="text-xs font-medium text-muted-foreground">
             {t("detail.group")}

@@ -13,6 +13,10 @@ function formatValidationIssue(issue: ScheduleValidationIssue) {
       ? `${issue.startTime}-${issue.endTime}`
       : undefined,
     issue.ruleIndex === undefined ? undefined : `rule ${issue.ruleIndex}`,
+    issue.conflictingGroupName
+      ? `group ${issue.conflictingGroupName}`
+      : undefined,
+    issue.conflictingPlanId ? `plan ${issue.conflictingPlanId}` : undefined,
   ]
     .filter(Boolean)
     .join(", ")

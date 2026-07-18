@@ -1,6 +1,7 @@
 "use server"
 
 import { generateText, Output } from "ai"
+import { and, eq, sql } from "drizzle-orm"
 
 import { db } from "@/lib/db"
 import { shiftSchedulePlans, shiftScheduleShifts } from "@/lib/db/schema"
@@ -8,7 +9,11 @@ import {
   formatValidationFeedbackForRetry,
   formatValidationIssuesForUser,
 } from "@/lib/shift-schedule/action-validation"
-import { getScheduleInputByGroupId } from "@/lib/shift-schedule/data"
+import { validateCrossGroupConflicts } from "@/lib/shift-schedule/cross-group-conflicts"
+import {
+  getActivePlanShiftsForWeek,
+  getScheduleInputByGroupId,
+} from "@/lib/shift-schedule/data"
 import { shiftSchedulePrompt } from "@/lib/shift-schedule/prompt"
 import {
   buildShiftSchedulePlanInsertValues,
@@ -18,9 +23,17 @@ import { generatedScheduleSchema } from "@/lib/shift-schedule/schemas"
 import type { GeneratedSchedule } from "@/lib/shift-schedule/schemas"
 import { validateGeneratedSchedule } from "@/lib/shift-schedule/validate-generated"
 import { validateScheduleInputSupport } from "@/lib/shift-schedule/validate-input"
+import type { ScheduleValidationResult } from "@/lib/shift-schedule/validation-types"
+import { isMondayWeekStart } from "@/lib/shift-schedule/week"
 import { uuidPattern } from "@/lib/uuid"
 
 const shiftScheduleModel = "openai/gpt-5.6-luna"
+
+class FinalPlanConflictError extends Error {
+  constructor(readonly validation: ScheduleValidationResult) {
+    super("The generated schedule plan conflicts with another active plan.")
+  }
+}
 
 function getGenerateScheduleErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -79,10 +92,17 @@ async function generateSchedulePlan(
   formData: FormData
 ) {
   const groupId = formData.get("groupId")?.toString()
+  const weekStart = formData.get("weekStart")?.toString()
 
   if (!groupId || !uuidPattern.test(groupId)) {
     return {
       error: "Choose a valid group before generating a plan.",
+    }
+  }
+
+  if (!weekStart || !isMondayWeekStart(weekStart)) {
+    return {
+      error: "Choose a Monday as the plan's week start.",
     }
   }
 
@@ -110,14 +130,32 @@ async function generateSchedulePlan(
   }
 
   try {
-    const basePrompt = `Schedule input JSON:\n${JSON.stringify(scheduleInput, null, 2)}`
+    const basePrompt = `Target week starts Monday ${weekStart}.\nSchedule input JSON:\n${JSON.stringify(scheduleInput, null, 2)}`
     const firstPlan = await generateParsedSchedulePlan({
       prompt: basePrompt,
     })
-    const firstValidation = validateGeneratedSchedule({
-      scheduleInput,
-      generatedSchedule: firstPlan,
-    })
+    const validatePlan = async (generatedSchedule: GeneratedSchedule) => {
+      const validation = validateGeneratedSchedule({
+        scheduleInput,
+        generatedSchedule,
+      })
+
+      if (!validation.valid) {
+        return validation
+      }
+
+      const activePlanShifts = await getActivePlanShiftsForWeek({
+        excludedGroupId: groupId,
+        staffIds: scheduleInput.staff.map((staff) => staff.id),
+        weekStart,
+      })
+
+      return validateCrossGroupConflicts({
+        activePlanShifts,
+        generatedSchedule,
+      })
+    }
+    const firstValidation = await validatePlan(firstPlan)
     let plan = firstPlan
 
     if (!firstValidation.valid) {
@@ -127,10 +165,7 @@ async function generateSchedulePlan(
 The previous generated schedule failed deterministic validation. Return a corrected full JSON schedule. Fix these validation issues:
 ${formatValidationFeedbackForRetry(firstValidation)}`,
       })
-      const retryValidation = validateGeneratedSchedule({
-        scheduleInput,
-        generatedSchedule: retryPlan,
-      })
+      const retryValidation = await validatePlan(retryPlan)
 
       if (!retryValidation.valid) {
         return {
@@ -142,6 +177,36 @@ ${formatValidationFeedbackForRetry(firstValidation)}`,
     }
 
     const planId = await db.transaction(async (tx) => {
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtext(${weekStart}))`
+      )
+
+      const activePlanShifts = await getActivePlanShiftsForWeek({
+        database: tx,
+        excludedGroupId: groupId,
+        staffIds: scheduleInput.staff.map((staff) => staff.id),
+        weekStart,
+      })
+      const finalConflictValidation = validateCrossGroupConflicts({
+        activePlanShifts,
+        generatedSchedule: plan,
+      })
+
+      if (!finalConflictValidation.valid) {
+        throw new FinalPlanConflictError(finalConflictValidation)
+      }
+
+      await tx
+        .update(shiftSchedulePlans)
+        .set({ status: "archived" })
+        .where(
+          and(
+            eq(shiftSchedulePlans.groupId, groupId),
+            eq(shiftSchedulePlans.weekStart, weekStart),
+            eq(shiftSchedulePlans.status, "active")
+          )
+        )
+
       const [savedPlan] = await tx
         .insert(shiftSchedulePlans)
         .values(
@@ -149,6 +214,7 @@ ${formatValidationFeedbackForRetry(firstValidation)}`,
             model: shiftScheduleModel,
             plan,
             scheduleInput,
+            weekStart,
           })
         )
         .returning({ id: shiftSchedulePlans.id })
@@ -168,8 +234,15 @@ ${formatValidationFeedbackForRetry(firstValidation)}`,
       plan,
       planId,
       planJson: JSON.stringify(plan, null, 2),
+      weekStart,
     }
   } catch (error) {
+    if (error instanceof FinalPlanConflictError) {
+      return {
+        error: formatValidationIssuesForUser(error.validation),
+      }
+    }
+
     return {
       error: getGenerateScheduleErrorMessage(error),
     }
