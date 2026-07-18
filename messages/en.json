@@ -14,7 +14,8 @@
   "navigation": {
     "staff": "Staff",
     "groups": "Groups",
-    "shiftSchedule": "Shift schedule"
+    "shiftSchedule": "Shift schedule",
+    "openingHours": "Opening hours"
   },
   "staff": {
     "title": "Staff",
@@ -26,10 +27,10 @@
     "backToStaff": "Back to staff",
     "backToStaffMember": "Back to staff member",
     "newTitle": "Create staff member",
-    "newDescription": "Add staff details and Monday-Friday availability.",
+    "newDescription": "Add staff details and weekly availability.",
     "edit": "Edit",
     "editTitle": "Edit staff member",
-    "editDescription": "Update staff details and Monday-Friday availability.",
+    "editDescription": "Update staff details and weekly availability.",
     "table": {
       "name": "Name",
       "role": "Role",
@@ -67,7 +68,7 @@
       "maxHours": "Max hours per week",
       "active": "Active staff member",
       "availabilityTitle": "Weekly availability",
-      "availabilityDescription": "Leave a weekday empty when the staff member is not available that day.",
+      "availabilityDescription": "Leave a day empty when the staff member is not available that day.",
       "startTime": "Start",
       "endTime": "End",
       "save": "Save staff member",
@@ -104,7 +105,7 @@
     "backToGroups": "Back to groups",
     "backToGroup": "Back to group",
     "newTitle": "Create group",
-    "newDescription": "Add a group name and Monday-Friday staff rules.",
+    "newDescription": "Add a group name and weekly staff rules.",
     "edit": "Edit",
     "editTitle": "Edit group",
     "editDescription": "Update the group name and staff rules.",
@@ -119,7 +120,7 @@
       "detailsDescription": "These fields describe the group.",
       "name": "Name",
       "rulesTitle": "Staff rules",
-      "rulesDescription": "Add the minimum staffing needed for each weekday time range.",
+      "rulesDescription": "Add the minimum staffing needed for each time range. Every rule must fit within one opening-hours interval.",
       "addRule": "Add rule",
       "removeRule": "Remove rule",
       "noRules": "No rules for this day.",
@@ -155,9 +156,22 @@
       "pedagogCapacityShortfall": "This group is short {hours} pedagog hours this week based on current staffing rules and linked pedagog staff capacity."
     }
   },
+  "openingHours": {
+    "title": "Institution opening hours",
+    "description": "Configure the global hours when shifts may be scheduled. Add multiple intervals for split opening hours, or leave a day closed. Existing staffing rules must remain inside one interval.",
+    "addInterval": "Add interval",
+    "removeInterval": "Remove interval",
+    "closed": "Closed",
+    "startTime": "Start",
+    "endTime": "End",
+    "save": "Save opening hours",
+    "saving": "Saving...",
+    "saved": "Opening hours saved.",
+    "errorTitle": "Fix these fields before saving"
+  },
   "shiftSchedule": {
     "title": "Shift schedule",
-    "description": "Preview the group data that will be used to generate a shift schedule.",
+    "description": "Preview the opening hours and group data used to generate a shift schedule.",
     "chooseGroup": "Choose group",
     "groupPlaceholder": "Select a group",
     "showJson": "Show JSON",
@@ -178,7 +192,7 @@
     "generatePlan": "Generate plan",
     "generatingPlan": "Generating...",
     "generatedTitle": "AI schedule plan",
-    "generatedDescription": "Generate a preview plan from the selected group's staff, availability, and staffing rules.",
+    "generatedDescription": "Generate a preview plan from institution opening hours and the selected group's staff, availability, and staffing rules.",
     "generatedEmptyDescription": "Generate a plan to see validated AI output here.",
     "generationErrorTitle": "Plan could not be generated",
     "savedTitle": "Plan saved",

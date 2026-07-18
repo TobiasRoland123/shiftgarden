@@ -6,12 +6,17 @@ import { eq } from "drizzle-orm"
 import { redirect } from "@/i18n/navigation"
 import { defaultLocale, locales, type Locale } from "@/i18n/routing"
 import { db } from "@/lib/db"
-import { groups, groupStaffRules } from "@/lib/db/schema"
+import {
+  groups,
+  groupStaffRules,
+  institutionOpeningHours,
+} from "@/lib/db/schema"
 import {
   isWeekdayAvailability,
   normalizeGroupName,
   weekdayAvailability,
 } from "@/lib/groups"
+import { intervalFitsWithin } from "@/lib/opening-hours"
 
 type GroupFormState = {
   errors: string[]
@@ -112,6 +117,26 @@ function getGroupStaffRuleRows(formData: FormData) {
   return { rows, errors }
 }
 
+async function getOpeningHoursErrors(rules: GroupStaffRuleRow[]) {
+  if (rules.length === 0) {
+    return []
+  }
+
+  const openingHours = await db
+    .select({
+      dayOfWeek: institutionOpeningHours.dayOfWeek,
+      startTime: institutionOpeningHours.startTime,
+      endTime: institutionOpeningHours.endTime,
+    })
+    .from(institutionOpeningHours)
+
+  return rules.some((rule) => !intervalFitsWithin(rule, openingHours))
+    ? [
+        "Each staffing rule must fit within one institution opening-hours interval.",
+      ]
+    : []
+}
+
 async function createGroup(
   _previousState: GroupFormState,
   formData: FormData
@@ -124,6 +149,8 @@ async function createGroup(
   if (!name) {
     errors.push("Name is required.")
   }
+
+  errors.push(...(await getOpeningHoursErrors(rules.rows)))
 
   if (errors.length > 0) {
     return { errors }
@@ -169,6 +196,8 @@ async function updateGroup(
   if (!name) {
     errors.push("Name is required.")
   }
+
+  errors.push(...(await getOpeningHoursErrors(rules.rows)))
 
   if (errors.length > 0) {
     return { errors }

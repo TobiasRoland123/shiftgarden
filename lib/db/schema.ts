@@ -87,6 +87,19 @@ export const groups = pgTable("groups", {
   name: text("name").notNull(),
 })
 
+export const institutionOpeningHours = pgTable(
+  "institution_opening_hours",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    dayOfWeek: dayOfWeek("day_of_week").notNull(),
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+  },
+  (table) => [
+    index("institution_opening_hours_day_of_week_idx").on(table.dayOfWeek),
+  ]
+)
+
 export const staffMemberGroups = pgTable(
   "staff_member_groups",
   {

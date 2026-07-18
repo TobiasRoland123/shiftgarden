@@ -9,6 +9,7 @@ import type {
 
 const scheduleInput = {
   group: { id: "group-1", name: "Blue room" },
+  openingHours: [],
   staff: [],
   rules: [],
 } satisfies ScheduleInput
@@ -22,6 +23,8 @@ function plan(groupId: string): GeneratedSchedule {
       { dayOfWeek: "wednesday", shifts: [] },
       { dayOfWeek: "thursday", shifts: [] },
       { dayOfWeek: "friday", shifts: [] },
+      { dayOfWeek: "saturday", shifts: [] },
+      { dayOfWeek: "sunday", shifts: [] },
     ],
     warnings: [],
   }

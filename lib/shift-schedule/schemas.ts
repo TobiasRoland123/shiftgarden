@@ -10,14 +10,6 @@ const daysOfWeek = [
   "sunday",
 ] as const
 
-const weekdays = [
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-] as const
-
 const staffRoles = ["pedagog", "assistant", "substitute"] as const
 const timeSchema = z
   .string()
@@ -28,6 +20,13 @@ const scheduleInputSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
   }),
+  openingHours: z.array(
+    z.object({
+      dayOfWeek: z.enum(daysOfWeek),
+      startTime: timeSchema,
+      endTime: timeSchema,
+    })
+  ),
   staff: z.array(
     z.object({
       id: z.string().min(1),
@@ -62,8 +61,8 @@ const generatedScheduleSchema = z.object({
     .array(
       z.object({
         dayOfWeek: z
-          .enum(weekdays)
-          .describe("The weekday these shifts belong to."),
+          .enum(daysOfWeek)
+          .describe("The day of the week these shifts belong to."),
         shifts: z.array(
           z.object({
             staffId: z
@@ -76,7 +75,7 @@ const generatedScheduleSchema = z.object({
         ),
       })
     )
-    .describe("Generated shifts grouped by weekday."),
+    .describe("Generated shifts grouped by day of the week."),
   warnings: z
     .array(z.string())
     .describe(
@@ -87,12 +86,6 @@ const generatedScheduleSchema = z.object({
 type ScheduleInput = z.infer<typeof scheduleInputSchema>
 type GeneratedSchedule = z.infer<typeof generatedScheduleSchema>
 
-export {
-  daysOfWeek,
-  generatedScheduleSchema,
-  scheduleInputSchema,
-  timeSchema,
-  weekdays,
-}
+export { daysOfWeek, generatedScheduleSchema, scheduleInputSchema, timeSchema }
 
 export type { GeneratedSchedule, ScheduleInput }
