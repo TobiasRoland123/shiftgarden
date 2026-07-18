@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/schema"
 import type { GeneratedSchedule } from "@/lib/shift-schedule/schemas"
 import { weekdays } from "@/lib/shift-schedule/schemas"
+import type { AcceptedSchedulePlan } from "@/lib/shift-schedule/validation-types"
 import { uuidPattern } from "@/lib/uuid"
 import { ShiftSchedulePlanView } from "../../shift-schedule-plan-view"
 
@@ -53,7 +54,8 @@ export default async function SavedPlanDetailPage({
       groupId: shiftSchedulePlans.groupId,
       groupName: groups.name,
       model: shiftSchedulePlans.model,
-      warnings: shiftSchedulePlans.warnings,
+      aiWarnings: shiftSchedulePlans.warnings,
+      validationWarnings: shiftSchedulePlans.validationWarnings,
     })
     .from(shiftSchedulePlans)
     .innerJoin(groups, eq(shiftSchedulePlans.groupId, groups.id))
@@ -110,9 +112,10 @@ export default async function SavedPlanDetailPage({
     })
   }
 
-  const plan: GeneratedSchedule = {
+  const plan: AcceptedSchedulePlan = {
     groupId: savedPlan.groupId,
-    warnings: savedPlan.warnings,
+    warnings: savedPlan.aiWarnings,
+    validationWarnings: savedPlan.validationWarnings,
     days: weekdays.map((day) => ({
       dayOfWeek: day,
       shifts: shiftsByDay.get(day) ?? [],
@@ -135,7 +138,7 @@ export default async function SavedPlanDetailPage({
         </div>
       </div>
 
-      <section className="grid gap-4 rounded-lg border p-4 sm:grid-cols-4">
+      <section className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2 lg:grid-cols-5">
         <div>
           <div className="text-xs font-medium text-muted-foreground">
             {t("detail.group")}
@@ -158,9 +161,17 @@ export default async function SavedPlanDetailPage({
         </div>
         <div>
           <div className="text-xs font-medium text-muted-foreground">
-            {t("detail.warnings")}
+            {t("detail.aiWarnings")}
           </div>
-          <div className="mt-1 text-sm">{savedPlan.warnings.length}</div>
+          <div className="mt-1 text-sm">{savedPlan.aiWarnings.length}</div>
+        </div>
+        <div>
+          <div className="text-xs font-medium text-muted-foreground">
+            {t("detail.validationWarnings")}
+          </div>
+          <div className="mt-1 text-sm">
+            {savedPlan.validationWarnings.length}
+          </div>
         </div>
       </section>
 

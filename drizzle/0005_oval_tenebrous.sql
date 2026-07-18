@@ -1,0 +1,1 @@
+ALTER TABLE "shift_schedule_plans" ADD COLUMN "validation_warnings" jsonb DEFAULT '[]'::jsonb NOT NULL;

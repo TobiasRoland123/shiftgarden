@@ -18,6 +18,7 @@ import { generatedScheduleSchema } from "@/lib/shift-schedule/schemas"
 import type { GeneratedSchedule } from "@/lib/shift-schedule/schemas"
 import { validateGeneratedSchedule } from "@/lib/shift-schedule/validate-generated"
 import { validateScheduleInputSupport } from "@/lib/shift-schedule/validate-input"
+import { getValidationWarnings } from "@/lib/shift-schedule/validation-types"
 import { uuidPattern } from "@/lib/uuid"
 
 const shiftScheduleModel = "openai/gpt-5.6-luna"
@@ -119,6 +120,7 @@ async function generateSchedulePlan(
       generatedSchedule: firstPlan,
     })
     let plan = firstPlan
+    let acceptedValidation = firstValidation
 
     if (!firstValidation.valid) {
       const retryPlan = await generateParsedSchedulePlan({
@@ -139,6 +141,15 @@ ${formatValidationFeedbackForRetry(firstValidation)}`,
       }
 
       plan = retryPlan
+      acceptedValidation = retryValidation
+    }
+
+    const acceptedPlan = {
+      ...plan,
+      validationWarnings: getValidationWarnings(
+        inputSupportValidation,
+        acceptedValidation
+      ),
     }
 
     const planId = await db.transaction(async (tx) => {
@@ -147,7 +158,7 @@ ${formatValidationFeedbackForRetry(firstValidation)}`,
         .values(
           buildShiftSchedulePlanInsertValues({
             model: shiftScheduleModel,
-            plan,
+            plan: acceptedPlan,
             scheduleInput,
           })
         )
@@ -165,9 +176,9 @@ ${formatValidationFeedbackForRetry(firstValidation)}`,
     })
 
     return {
-      plan,
+      plan: acceptedPlan,
       planId,
-      planJson: JSON.stringify(plan, null, 2),
+      planJson: JSON.stringify(acceptedPlan, null, 2),
     }
   } catch (error) {
     return {

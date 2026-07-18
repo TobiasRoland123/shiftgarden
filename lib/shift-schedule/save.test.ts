@@ -4,10 +4,8 @@ import {
   buildShiftSchedulePlanInsertValues,
   buildShiftScheduleShiftInsertValues,
 } from "@/lib/shift-schedule/save"
-import type {
-  GeneratedSchedule,
-  ScheduleInput,
-} from "@/lib/shift-schedule/schemas"
+import type { ScheduleInput } from "@/lib/shift-schedule/schemas"
+import type { AcceptedSchedulePlan } from "@/lib/shift-schedule/validation-types"
 
 const scheduleInput: ScheduleInput = {
   group: {
@@ -42,7 +40,7 @@ const scheduleInput: ScheduleInput = {
   ],
 }
 
-const generatedSchedule: GeneratedSchedule = {
+const generatedSchedule: AcceptedSchedulePlan = {
   groupId: "group-1",
   days: [
     {
@@ -61,6 +59,14 @@ const generatedSchedule: GeneratedSchedule = {
     },
   ],
   warnings: ["Could not cover Tuesday."],
+  validationWarnings: [
+    {
+      code: "max_hours_exceeded",
+      severity: "warning",
+      message: "Hours are close to the weekly capacity.",
+      staffId: "staff-1",
+    },
+  ],
 }
 
 describe("shift schedule save values", () => {
@@ -75,6 +81,14 @@ describe("shift schedule save values", () => {
       groupId: "group-1",
       inputJson: scheduleInput,
       warnings: ["Could not cover Tuesday."],
+      validationWarnings: [
+        {
+          code: "max_hours_exceeded",
+          severity: "warning",
+          message: "Hours are close to the weekly capacity.",
+          staffId: "staff-1",
+        },
+      ],
       model: "openai/gpt-5.4",
     })
   })

@@ -4,12 +4,13 @@ import type { CSSProperties } from "react"
 import { useTranslations } from "next-intl"
 
 import type { GeneratedSchedule } from "@/lib/shift-schedule/schemas"
+import type { AcceptedSchedulePlan } from "@/lib/shift-schedule/validation-types"
 import { CopyJsonButton } from "./copy-json-button"
 
 type ShiftSchedulePlanViewProps = {
   copiedLabel?: string
   copyLabel?: string
-  plan: GeneratedSchedule
+  plan: AcceptedSchedulePlan
   planJson?: string
   staffById: Record<string, string>
 }
@@ -103,10 +104,21 @@ function ShiftSchedulePlanView({
     <div className="grid gap-4">
       {plan.warnings.length > 0 ? (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
-          <h3 className="font-medium">{t("warningsTitle")}</h3>
+          <h3 className="font-medium">{t("aiWarningsTitle")}</h3>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {plan.warnings.map((warning) => (
               <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {plan.validationWarnings.length > 0 ? (
+        <div className="rounded-lg border border-sky-300 bg-sky-50 p-4 text-sm text-sky-950 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-100">
+          <h3 className="font-medium">{t("validationWarningsTitle")}</h3>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {plan.validationWarnings.map((warning, index) => (
+              <li key={`${warning.code}-${index}`}>{warning.message}</li>
             ))}
           </ul>
         </div>

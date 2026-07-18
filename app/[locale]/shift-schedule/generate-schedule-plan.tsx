@@ -4,7 +4,7 @@ import { useActionState } from "react"
 import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
-import type { GeneratedSchedule } from "@/lib/shift-schedule/schemas"
+import type { AcceptedSchedulePlan } from "@/lib/shift-schedule/validation-types"
 import { generateSchedulePlan } from "./actions"
 import { ShiftSchedulePlanView } from "./shift-schedule-plan-view"
 
@@ -22,7 +22,7 @@ type GenerateSchedulePlanProps = {
 
 type GenerateSchedulePlanState = {
   error?: string
-  plan?: GeneratedSchedule
+  plan?: AcceptedSchedulePlan
   planId?: string
   planJson?: string
 }
@@ -98,7 +98,7 @@ function GeneratedPlanView({
 }: {
   copiedLabel: string
   copyLabel: string
-  plan: GeneratedSchedule
+  plan: AcceptedSchedulePlan
   planId?: string
   planJson?: string
   staffById: Record<string, string>

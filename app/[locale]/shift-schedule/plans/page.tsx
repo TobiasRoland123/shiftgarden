@@ -37,7 +37,8 @@ export default async function SavedPlansPage({ params }: SavedPlansPageProps) {
       createdAt: shiftSchedulePlans.createdAt,
       groupName: groups.name,
       model: shiftSchedulePlans.model,
-      warnings: shiftSchedulePlans.warnings,
+      aiWarnings: shiftSchedulePlans.warnings,
+      validationWarnings: shiftSchedulePlans.validationWarnings,
     })
     .from(shiftSchedulePlans)
     .innerJoin(groups, eq(shiftSchedulePlans.groupId, groups.id))
@@ -70,21 +71,20 @@ export default async function SavedPlansPage({ params }: SavedPlansPageProps) {
           </Button>
         </section>
       ) : (
-        <div className="overflow-hidden rounded-lg border">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-lg border">
+          <table className="w-full min-w-[48rem] text-left text-sm">
             <thead className="border-b bg-muted/50 text-xs text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 font-medium">
-                  {t("table.group")}
-                </th>
+                <th className="px-4 py-3 font-medium">{t("table.group")}</th>
                 <th className="px-4 py-3 font-medium">
                   {t("table.createdAt")}
                 </th>
+                <th className="px-4 py-3 font-medium">{t("table.model")}</th>
                 <th className="px-4 py-3 font-medium">
-                  {t("table.model")}
+                  {t("table.aiWarnings")}
                 </th>
                 <th className="px-4 py-3 font-medium">
-                  {t("table.warnings")}
+                  {t("table.validationWarnings")}
                 </th>
                 <th className="px-4 py-3 font-medium">
                   <span className="sr-only">{t("table.actions")}</span>
@@ -112,7 +112,12 @@ export default async function SavedPlansPage({ params }: SavedPlansPageProps) {
                       <CellLink href={href}>{plan.model}</CellLink>
                     </td>
                     <td className="p-0">
-                      <CellLink href={href}>{plan.warnings.length}</CellLink>
+                      <CellLink href={href}>{plan.aiWarnings.length}</CellLink>
+                    </td>
+                    <td className="p-0">
+                      <CellLink href={href}>
+                        {plan.validationWarnings.length}
+                      </CellLink>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Button asChild variant="ghost" size="sm">

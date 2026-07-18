@@ -183,7 +183,8 @@
     "generationErrorTitle": "Plan could not be generated",
     "savedTitle": "Plan saved",
     "savedDescription": "Saved as plan {planId}.",
-    "warningsTitle": "Warnings",
+    "aiWarningsTitle": "AI warnings",
+    "validationWarningsTitle": "Validation warnings",
     "calendarTitle": "Week overview",
     "calendarDescription": "Shift placement and duration on a shared timeline.",
     "shiftLabel": "{name}: {start} to {end}",
@@ -198,7 +199,8 @@
       "group": "Group",
       "createdAt": "Created",
       "model": "Model",
-      "warnings": "Warnings",
+      "aiWarnings": "AI warnings",
+      "validationWarnings": "Validation warnings",
       "actions": "Actions",
       "view": "View"
     },
@@ -206,7 +208,8 @@
       "group": "Group",
       "createdAt": "Created",
       "model": "Model",
-      "warnings": "Warnings"
+      "aiWarnings": "AI warnings",
+      "validationWarnings": "Validation warnings"
     }
   }
 }
