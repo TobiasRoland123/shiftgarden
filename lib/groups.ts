@@ -26,6 +26,15 @@ type GroupCapacityStaffingRule = {
   minStaff: number
   minPedagogs: number
 }
+type StaffingRuleValues = {
+  startTime: string
+  endTime: string
+  minStaff: number
+  minPedagogs: number
+}
+type WeekdayStaffingRuleValues = StaffingRuleValues & {
+  dayOfWeek: string
+}
 
 type GroupCapacityStaffMember = {
   active: boolean
@@ -86,6 +95,34 @@ function groupStaffRulesByWeekday<T extends GroupStaffRule>(
 
       return groups
     }, [])
+}
+
+function cloneStaffingRulesToAllWeekdays<T extends StaffingRuleValues>(
+  rules: readonly T[]
+): Array<T & { dayOfWeek: WeekdayAvailability }> {
+  return weekdayAvailability.flatMap((dayOfWeek) =>
+    rules.map((rule) => ({ ...rule, dayOfWeek }))
+  )
+}
+
+function haveSameStaffingRulesOnAllWeekdays<
+  T extends WeekdayStaffingRuleValues,
+>(rules: readonly T[]) {
+  const rulesByDay = weekdayAvailability.map((day) =>
+    rules
+      .filter((rule) => rule.dayOfWeek === day)
+      .map(({ startTime, endTime, minStaff, minPedagogs }) => ({
+        startTime,
+        endTime,
+        minStaff,
+        minPedagogs,
+      }))
+  )
+  const [firstDayRules, ...otherDaysRules] = rulesByDay
+
+  return otherDaysRules.every(
+    (dayRules) => JSON.stringify(dayRules) === JSON.stringify(firstDayRules)
+  )
 }
 
 function getTimeOfDayMinutes(time: string) {
@@ -183,10 +220,12 @@ export {
   calculateLinkedActiveStaffCapacityMinutes,
   calculateWeeklyPedagogDemandMinutes,
   calculateWeeklyStaffDemandMinutes,
+  cloneStaffingRulesToAllWeekdays,
   compareGroupStaffRules,
   formatCapacityHours,
   formatWeekday,
   groupStaffRulesByWeekday,
+  haveSameStaffingRulesOnAllWeekdays,
   getStaffingRuleDurationMinutes,
   isWeekdayAvailability,
   normalizeGroupName,
@@ -199,5 +238,7 @@ export type {
   GroupCapacityStaffMember,
   GroupedStaffRules,
   GroupTranslator,
+  StaffingRuleValues,
+  WeekdayStaffingRuleValues,
   WeekdayAvailability,
 }
