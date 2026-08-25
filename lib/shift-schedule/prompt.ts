@@ -29,11 +29,17 @@ Hard constraints:
 Hard constraints always take precedence over every optimization goal below.
 
 Optimization goals:
-1. Distribute hours fairly across staff.
-2. Prefer pedagogs only where needed, so assistants/substitutes are also used.
-3. Avoid unnecessarily long shifts if shorter shifts can satisfy the rules.
-4. Minimize gaps in coverage.
-5. Make the schedule easy to read.
+1. Rotate early and late shifts fairly across the whole week:
+   - For each day, treat the shift or shifts with the earliest start time as early shifts and the shift or shifts with the latest end time as late shifts.
+   - Count early shifts and late shifts separately for each staff member across the week.
+   - Among staff who can cover comparable shifts within their availability and role requirements, aim for each person's early-shift count to differ by no more than one, and do the same for late-shift counts.
+   - Avoid assigning the same person an early or late shift on consecutive days when another eligible staff member can take it.
+   - Before returning the schedule, tally these counts and swap equally qualified staff between shifts wherever that improves the distribution without breaking a hard constraint.
+2. Distribute total hours fairly across staff. Do not use balanced total hours as a substitute for balancing early and late shifts separately.
+3. Prefer pedagogs only where needed, so assistants/substitutes are also used.
+4. Avoid unnecessarily long shifts if shorter shifts can satisfy the rules.
+5. Minimize gaps in coverage.
+6. Make the schedule easy to read.
 
 Output format:
 Return only valid JSON with this structure:
