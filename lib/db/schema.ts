@@ -149,7 +149,7 @@ export const shiftSchedulePlans = pgTable(
     groupId: uuid("group_id")
       .notNull()
       .references(() => groups.id, { onDelete: "cascade" }),
-    inputJson: jsonb("input_json").notNull(),
+    inputJson: jsonb("input_json").$type<ScheduleInput>().notNull(),
     warnings: jsonb("warnings").$type<string[]>().notNull(),
     validationWarnings: jsonb("validation_warnings")
       .$type<ScheduleValidationWarning[]>()

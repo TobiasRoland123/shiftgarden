@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  getDayTimelineBounds,
   getShiftBarGeometry,
   getTimelineBounds,
 } from "@/lib/shift-schedule/timeline"
@@ -56,5 +57,67 @@ describe("getShiftBarGeometry", () => {
 
     expect(geometry.leftPercent).toBeCloseTo(16.67, 2)
     expect(geometry.widthPercent).toBeCloseTo(27.78, 2)
+  })
+})
+
+describe("getDayTimelineBounds", () => {
+  it("spans the institution opening hours for the weekday", () => {
+    expect(
+      getDayTimelineBounds({
+        dayOfWeek: "monday",
+        openingHours: [
+          { dayOfWeek: "monday", startTime: "07:00", endTime: "17:00" },
+          { dayOfWeek: "tuesday", startTime: "06:00", endTime: "20:00" },
+        ],
+        shifts: [{ startTime: "09:00", endTime: "12:00" }],
+      })
+    ).toEqual({ start: 7 * 60, end: 17 * 60 })
+  })
+
+  it("spans every opening interval when a weekday has a gap", () => {
+    expect(
+      getDayTimelineBounds({
+        dayOfWeek: "monday",
+        openingHours: [
+          { dayOfWeek: "monday", startTime: "07:00", endTime: "12:00" },
+          { dayOfWeek: "monday", startTime: "13:00", endTime: "17:00" },
+        ],
+        shifts: [],
+      })
+    ).toEqual({ start: 7 * 60, end: 17 * 60 })
+  })
+
+  it("falls back to the weekday's shifts when there are no opening hours", () => {
+    expect(
+      getDayTimelineBounds({
+        dayOfWeek: "saturday",
+        openingHours: [
+          { dayOfWeek: "monday", startTime: "07:00", endTime: "17:00" },
+        ],
+        shifts: [{ startTime: "08:45", endTime: "14:10" }],
+      })
+    ).toEqual({ start: 8 * 60, end: 15 * 60 })
+  })
+
+  it("falls back to default bounds with neither opening hours nor shifts", () => {
+    expect(
+      getDayTimelineBounds({
+        dayOfWeek: "sunday",
+        openingHours: [],
+        shifts: [],
+      })
+    ).toEqual({ start: 8 * 60, end: 17 * 60 })
+  })
+
+  it("extends past opening hours when a shift falls outside them", () => {
+    expect(
+      getDayTimelineBounds({
+        dayOfWeek: "monday",
+        openingHours: [
+          { dayOfWeek: "monday", startTime: "07:00", endTime: "17:00" },
+        ],
+        shifts: [{ startTime: "06:30", endTime: "18:30" }],
+      })
+    ).toEqual({ start: 6 * 60, end: 19 * 60 })
   })
 })

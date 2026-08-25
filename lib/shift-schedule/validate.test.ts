@@ -693,4 +693,138 @@ describe("validateGeneratedSchedule", () => {
 
     expect(codesFor(result)).toContain("min_staff_unmet")
   })
+
+  it("reports an unmet coverage segment with the segment time range", () => {
+    const result = validateGeneratedSchedule({
+      scheduleInput: createScheduleInput({
+        rules: [
+          {
+            dayOfWeek: "monday",
+            startTime: "09:00",
+            endTime: "12:00",
+            minPedagogs: 0,
+            minStaff: 2,
+          },
+        ],
+      }),
+      generatedSchedule: createGeneratedSchedule({
+        days: daysOfWeek.map((dayOfWeek) => ({
+          dayOfWeek,
+          shifts:
+            dayOfWeek === "monday"
+              ? [
+                  {
+                    staffId: "pedagog-1",
+                    startTime: "09:00",
+                    endTime: "12:00",
+                  },
+                  {
+                    staffId: "assistant-1",
+                    startTime: "09:00",
+                    endTime: "11:00",
+                  },
+                ]
+              : [],
+        })),
+      }),
+    })
+
+    expect(
+      result.issues
+        .filter((issue) => issue.code === "min_staff_unmet")
+        .map((issue) => ({
+          startTime: issue.startTime,
+          endTime: issue.endTime,
+          ruleIndex: issue.ruleIndex,
+        }))
+    ).toEqual([{ startTime: "11:00", endTime: "12:00", ruleIndex: 0 }])
+  })
+
+  it("reports every unmet coverage segment inside one staffing rule", () => {
+    const result = validateGeneratedSchedule({
+      scheduleInput: createScheduleInput({
+        rules: [
+          {
+            dayOfWeek: "monday",
+            startTime: "09:00",
+            endTime: "15:00",
+            minPedagogs: 0,
+            minStaff: 2,
+          },
+        ],
+      }),
+      generatedSchedule: createGeneratedSchedule({
+        days: daysOfWeek.map((dayOfWeek) => ({
+          dayOfWeek,
+          shifts:
+            dayOfWeek === "monday"
+              ? [
+                  {
+                    staffId: "pedagog-1",
+                    startTime: "09:00",
+                    endTime: "15:00",
+                  },
+                  {
+                    staffId: "assistant-1",
+                    startTime: "10:00",
+                    endTime: "13:00",
+                  },
+                ]
+              : [],
+        })),
+      }),
+    })
+
+    expect(
+      result.issues
+        .filter((issue) => issue.code === "min_staff_unmet")
+        .map((issue) => `${issue.startTime}-${issue.endTime}`)
+    ).toEqual(["09:00-10:00", "13:00-15:00"])
+  })
+
+  it("reports both minimums when one segment fails staff and pedagog coverage", () => {
+    const result = validateGeneratedSchedule({
+      scheduleInput: createScheduleInput({
+        rules: [
+          {
+            dayOfWeek: "monday",
+            startTime: "09:00",
+            endTime: "12:00",
+            minPedagogs: 1,
+            minStaff: 2,
+          },
+        ],
+      }),
+      generatedSchedule: createGeneratedSchedule({
+        days: daysOfWeek.map((dayOfWeek) => ({
+          dayOfWeek,
+          shifts:
+            dayOfWeek === "monday"
+              ? [
+                  {
+                    staffId: "assistant-1",
+                    startTime: "09:00",
+                    endTime: "12:00",
+                  },
+                ]
+              : [],
+        })),
+      }),
+    })
+    const coverageIssues = result.issues.filter(
+      (issue) =>
+        issue.code === "min_staff_unmet" || issue.code === "min_pedagogs_unmet"
+    )
+
+    expect(coverageIssues.map((issue) => issue.code)).toEqual([
+      "min_staff_unmet",
+      "min_pedagogs_unmet",
+    ])
+    expect(coverageIssues.every((issue) => issue.startTime === "09:00")).toBe(
+      true
+    )
+    expect(coverageIssues.every((issue) => issue.endTime === "12:00")).toBe(
+      true
+    )
+  })
 })

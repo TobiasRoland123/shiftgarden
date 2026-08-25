@@ -56,6 +56,7 @@ export default async function SavedPlanDetailPage({
       model: shiftSchedulePlans.model,
       aiWarnings: shiftSchedulePlans.warnings,
       validationWarnings: shiftSchedulePlans.validationWarnings,
+      inputJson: shiftSchedulePlans.inputJson,
     })
     .from(shiftSchedulePlans)
     .innerJoin(groups, eq(shiftSchedulePlans.groupId, groups.id))
@@ -93,12 +94,6 @@ export default async function SavedPlanDetailPage({
     GeneratedScheduleDay,
     GeneratedSchedule["days"][number]["shifts"]
   >(daysOfWeek.map((day) => [day, []]))
-  const staffById = Object.fromEntries(
-    shifts.map((shift) => [
-      shift.staffMemberId,
-      `${shift.staffFirstName} ${shift.staffLastName}`,
-    ])
-  )
 
   for (const shift of shifts) {
     if (!isGeneratedScheduleDay(shift.dayOfWeek)) {
@@ -121,6 +116,9 @@ export default async function SavedPlanDetailPage({
       shifts: shiftsByDay.get(day) ?? [],
     })),
   }
+  // `input_json` is the schedule input the plan was generated from, so the
+  // saved-plan view gets the same availability and coverage context as review.
+  const scheduleInput = savedPlan.inputJson
 
   return (
     <div className="flex min-h-svh flex-col gap-6 p-6">
@@ -175,7 +173,7 @@ export default async function SavedPlanDetailPage({
         </div>
       </section>
 
-      <ShiftSchedulePlanView plan={plan} staffById={staffById} />
+      <ShiftSchedulePlanView plan={plan} scheduleInput={scheduleInput} />
     </div>
   )
 }

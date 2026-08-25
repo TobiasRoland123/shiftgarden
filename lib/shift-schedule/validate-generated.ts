@@ -1,53 +1,20 @@
+import { calculateCoverageSegments } from "@/lib/shift-schedule/coverage"
 import { daysOfWeek } from "@/lib/shift-schedule/schemas"
 import type {
   GeneratedSchedule,
   ScheduleInput,
 } from "@/lib/shift-schedule/schemas"
+import {
+  flattenGeneratedShifts,
+  indexShiftsByStaffAndDay,
+  indexStaffById,
+  timeToMinutes,
+} from "@/lib/shift-schedule/shifts"
 import { buildValidationResult } from "@/lib/shift-schedule/validation-types"
 import type {
   ScheduleValidationIssue,
   ScheduleValidationResult,
 } from "@/lib/shift-schedule/validation-types"
-
-type GeneratedDay = GeneratedSchedule["days"][number]
-type GeneratedShift = GeneratedDay["shifts"][number]
-type ShiftWithDay = GeneratedShift & {
-  dayOfWeek: GeneratedDay["dayOfWeek"]
-}
-
-function timeToMinutes(time: string) {
-  const [hours, minutes] = time.split(":").map(Number)
-
-  return hours * 60 + minutes
-}
-
-function indexStaffById(scheduleInput: ScheduleInput) {
-  return new Map(scheduleInput.staff.map((staff) => [staff.id, staff]))
-}
-
-function flattenGeneratedShifts(
-  generatedSchedule: GeneratedSchedule
-): ShiftWithDay[] {
-  return generatedSchedule.days.flatMap((day) =>
-    day.shifts.map((shift) => ({
-      ...shift,
-      dayOfWeek: day.dayOfWeek,
-    }))
-  )
-}
-
-function indexShiftsByStaffAndDay(generatedSchedule: GeneratedSchedule) {
-  const index = new Map<string, ShiftWithDay[]>()
-
-  for (const shift of flattenGeneratedShifts(generatedSchedule)) {
-    const key = `${shift.staffId}:${shift.dayOfWeek}`
-    const shifts = index.get(key) ?? []
-    shifts.push(shift)
-    index.set(key, shifts)
-  }
-
-  return index
-}
 
 function validateScheduleGroupId({
   scheduleInput,
@@ -358,12 +325,6 @@ function validateFifoEndOrder(
   return issues
 }
 
-function isShiftInInterval(shift: ShiftWithDay, start: number, end: number) {
-  return (
-    timeToMinutes(shift.startTime) < end && timeToMinutes(shift.endTime) > start
-  )
-}
-
 function validateShiftsWithinOpeningHours({
   scheduleInput,
   generatedSchedule,
@@ -399,6 +360,12 @@ function validateShiftsWithinOpeningHours({
   })
 }
 
+/**
+ * Reports every unsatisfied coverage segment for every staffing rule. Issues
+ * carry the failing segment's time range rather than the whole rule's, so a
+ * reader can see where coverage breaks down, and each applicable rule is
+ * checked independently because overlapping rules never replace one another.
+ */
 function validateStaffingRules({
   scheduleInput,
   generatedSchedule,
@@ -406,76 +373,41 @@ function validateStaffingRules({
   scheduleInput: ScheduleInput
   generatedSchedule: GeneratedSchedule
 }): ScheduleValidationIssue[] {
-  const staffById = indexStaffById(scheduleInput)
-  const allShifts = flattenGeneratedShifts(generatedSchedule)
   const issues: ScheduleValidationIssue[] = []
+  const segments = calculateCoverageSegments({
+    scheduleInput,
+    generatedSchedule,
+  })
 
-  scheduleInput.rules.forEach((rule, ruleIndex) => {
-    const ruleStart = timeToMinutes(rule.startTime)
-    const ruleEnd = timeToMinutes(rule.endTime)
-    const sameDayShifts = allShifts.filter(
-      (shift) =>
-        shift.dayOfWeek === rule.dayOfWeek &&
-        timeToMinutes(shift.endTime) > timeToMinutes(shift.startTime) &&
-        isShiftInInterval(shift, ruleStart, ruleEnd)
-    )
-    const boundaries = new Set([ruleStart, ruleEnd])
+  for (const segment of segments) {
+    for (const ruleIndex of segment.ruleIndexes) {
+      const rule = scheduleInput.rules[ruleIndex]
 
-    for (const shift of sameDayShifts) {
-      const shiftStart = timeToMinutes(shift.startTime)
-      const shiftEnd = timeToMinutes(shift.endTime)
-
-      if (shiftStart > ruleStart && shiftStart < ruleEnd) {
-        boundaries.add(shiftStart)
-      }
-
-      if (shiftEnd > ruleStart && shiftEnd < ruleEnd) {
-        boundaries.add(shiftEnd)
-      }
-    }
-
-    const sortedBoundaries = Array.from(boundaries).sort((a, b) => a - b)
-
-    for (let index = 0; index < sortedBoundaries.length - 1; index += 1) {
-      const segmentStart = sortedBoundaries[index]
-      const segmentEnd = sortedBoundaries[index + 1]
-      const coveringShifts = sameDayShifts.filter(
-        (shift) =>
-          timeToMinutes(shift.startTime) <= segmentStart &&
-          timeToMinutes(shift.endTime) >= segmentEnd
-      )
-      const staffCount = coveringShifts.length
-      const pedagogCount = coveringShifts.filter(
-        (shift) => staffById.get(shift.staffId)?.role === "pedagog"
-      ).length
-
-      if (staffCount < rule.minStaff) {
+      if (segment.staffCount < rule.minStaff) {
         issues.push({
           code: "min_staff_unmet",
           severity: "error",
-          message: "Generated schedule does not meet minimum staff coverage.",
-          dayOfWeek: rule.dayOfWeek,
-          startTime: rule.startTime,
-          endTime: rule.endTime,
+          message: `Generated schedule provides ${segment.staffCount} of ${rule.minStaff} required staff from ${segment.startTime} to ${segment.endTime}.`,
+          dayOfWeek: segment.dayOfWeek,
+          startTime: segment.startTime,
+          endTime: segment.endTime,
           ruleIndex,
         })
-        break
       }
 
-      if (pedagogCount < rule.minPedagogs) {
+      if (segment.pedagogCount < rule.minPedagogs) {
         issues.push({
           code: "min_pedagogs_unmet",
           severity: "error",
-          message: "Generated schedule does not meet minimum pedagog coverage.",
-          dayOfWeek: rule.dayOfWeek,
-          startTime: rule.startTime,
-          endTime: rule.endTime,
+          message: `Generated schedule provides ${segment.pedagogCount} of ${rule.minPedagogs} required pedagogs from ${segment.startTime} to ${segment.endTime}.`,
+          dayOfWeek: segment.dayOfWeek,
+          startTime: segment.startTime,
+          endTime: segment.endTime,
           ruleIndex,
         })
-        break
       }
     }
-  })
+  }
 
   return issues
 }

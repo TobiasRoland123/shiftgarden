@@ -177,7 +177,6 @@
     "description": "Preview the opening hours and group data used to generate a shift schedule.",
     "chooseGroup": "Choose group",
     "groupPlaceholder": "Select a group",
-    "showJson": "Show JSON",
     "savedPlans": "Saved plans",
     "savedPlansDescription": "Open a previously generated shift schedule plan.",
     "backToShiftSchedule": "Back to shift schedule",
@@ -197,7 +196,6 @@
     "generatedTitle": "AI schedule plan",
     "generatedDescription": "Generate a preview plan from institution opening hours and the selected group's staff, availability, and staffing rules.",
     "generatedEmptyDescription": "Generate a plan to see validated AI output here.",
-    "generationErrorTitle": "Plan could not be generated",
     "savedTitle": "Plan saved",
     "savedDescription": "Saved as plan {planId}.",
     "aiWarningsTitle": "AI warnings",
@@ -205,9 +203,6 @@
     "calendarTitle": "Week overview",
     "calendarDescription": "Shift placement and duration on a shared timeline.",
     "shiftLabel": "{name}: {start} to {end}",
-    "staffMember": "Staff member",
-    "start": "Start",
-    "end": "End",
     "noShifts": "No shifts for this day.",
     "generatedJsonTitle": "Generated plan JSON",
     "invalidGroup": "The selected group id is not valid. Choose a group from the list.",
@@ -227,6 +222,94 @@
       "model": "Model",
       "aiWarnings": "AI warnings",
       "validationWarnings": "Validation warnings"
-    }
+    },
+    "validation": {
+      "title": "Validation errors",
+      "description": "These hard rule violations block the plan from being saved.",
+      "context": {
+        "day": "{day}",
+        "staff": "{name}",
+        "range": "{start}-{end}",
+        "rule": "Staffing rule {number}"
+      },
+      "count": "{count, plural, one {# issue} other {# issues}}",
+      "group_id_mismatch": "The plan was generated for a different group.",
+      "missing_weekday": "{day} is missing from the plan.",
+      "duplicate_weekday": "{day} appears more than once in the plan.",
+      "staffing_rule_outside_opening_hours": "The {day} staffing rule {start}-{end} does not fit inside one opening hours interval.",
+      "unknown_staff": "The plan schedules a staff member who is not linked to this group.",
+      "inactive_staff": "{name} is inactive and cannot be scheduled.",
+      "invalid_shift_time": "The {day} shift {start}-{end} has an invalid time range.",
+      "outside_availability": "{name} is scheduled {start}-{end} on {day}, which does not fit inside one availability interval.",
+      "max_hours_exceeded": "{name} is scheduled for more than their weekly maximum hours.",
+      "overlapping_shift": "{name} has overlapping shifts on {day}.",
+      "shift_outside_opening_hours": "{name} is scheduled {start}-{end} on {day}, outside institution opening hours.",
+      "fifo_end_order_inversion": "{name} starts later but ends earlier than a colleague on {day}.",
+      "min_staff_unmet": "{day} {start}-{end} does not have enough staff for staffing rule {number}.",
+      "min_pedagogs_unmet": "{day} {start}-{end} does not have enough pedagogs for staffing rule {number}."
+    },
+    "readiness": {
+      "title": "Group readiness",
+      "description": "Checked before generating, so problems surface without spending an AI call.",
+      "readyTitle": "Ready to generate",
+      "readyDescription": "This group has everything needed to generate a schedule plan.",
+      "blockedTitle": "Generation is blocked",
+      "linkedActiveStaff": "Linked active staff",
+      "linkedStaff": "Linked staff",
+      "staffingRules": "Staffing rules",
+      "openingHours": "Opening hours intervals",
+      "blocking": {
+        "no_opening_hours": "The institution has no opening hours configured.",
+        "no_staffing_rules": "This group has no staffing rules.",
+        "no_linked_active_staff": "This group has no linked active staff members.",
+        "staffing_rule_outside_opening_hours": "The {day} staffing rule {start}-{end} does not fit inside one opening hours interval."
+      },
+      "capacity": {
+        "staffTitle": "Weekly staff capacity shortfall",
+        "staffDescription": "Linked active staff can work {capacity} hours per week, but staffing rules require {demand} hours. Short by {shortfall} hours.",
+        "pedagogTitle": "Weekly pedagog capacity shortfall",
+        "pedagogDescription": "Linked active pedagogs can work {capacity} hours per week, but staffing rules require {demand} pedagog hours. Short by {shortfall} hours.",
+        "note": "This is a group-level concern. It does not decide whether a generated plan can be accepted."
+      }
+    },
+    "verdict": {
+      "acceptedTitle": "Accepted plan",
+      "acceptedDescription": "This plan has zero validation errors and can be saved.",
+      "blockedTitle": "Plan cannot be accepted",
+      "blockedDescription": "{count, plural, one {# validation error blocks} other {# validation errors block}} this plan from being saved."
+    },
+    "failure": {
+      "title": "Plan could not be generated",
+      "invalid_group": "Choose a valid group before generating a plan.",
+      "group_not_found": "That group could not be found. Choose another group.",
+      "input_not_supported": "This group's data cannot be scheduled yet.",
+      "invalid_review": "That plan could not be read. Generate a new plan and try again.",
+      "plan_no_longer_valid": "This plan no longer passes validation against current group data. Generate a new plan.",
+      "gateway_not_configured": "AI Gateway is not configured. Add AI_GATEWAY_API_KEY to .env.local, then restart the dev server.",
+      "schema_mismatch": "The AI returned a response that did not match the schedule schema. Try generating again.",
+      "gateway_auth": "AI Gateway authentication failed. Check that AI_GATEWAY_API_KEY is valid, then restart the dev server.",
+      "model_rejected": "AI Gateway rejected the model \"{detail}\". Choose a model enabled for your account.",
+      "database": "The plan could not be saved to the database. Check that the latest migrations have been applied.",
+      "gateway_error": "AI Gateway error: {detail}",
+      "unknown": "The plan could not be generated because AI Gateway returned an unknown error."
+    },
+    "aiWarningsDescription": "Notes from the model. They are not validation results and do not decide whether this plan is accepted.",
+    "validationWarningsDescription": "Non-blocking concerns. They do not prevent this plan from being saved.",
+    "accept": "Accept and save plan",
+    "accepting": "Saving...",
+    "regenerate": "Generate a new plan",
+    "viewSavedPlan": "View saved plan",
+    "reviewTitle": "Review generated plan",
+    "reviewDescription": "Nothing is saved until you accept this plan.",
+    "generatingTitle": "Generating plan",
+    "generatingDescription": "Producing a plan and checking it against the staffing rules.",
+    "developerDetails": "Developer details",
+    "coverage": {
+      "title": "Coverage",
+      "label": "{start}-{end}: {staffCount} of {minStaff} staff, {pedagogCount} of {minPedagogs} pedagogs",
+      "noRequirement": "No minimum required"
+    },
+    "emptyDayTitle": "Nothing scheduled",
+    "generateBlockedReason": "Resolve the group readiness problems above before generating a plan."
   }
 }

@@ -177,7 +177,6 @@
     "description": "Forhåndsvis åbningstider og gruppedata, der bruges til at lave en vagtplan.",
     "chooseGroup": "Vælg gruppe",
     "groupPlaceholder": "Vælg en gruppe",
-    "showJson": "Vis JSON",
     "savedPlans": "Gemte planer",
     "savedPlansDescription": "Åbn en tidligere genereret vagtplan.",
     "backToShiftSchedule": "Tilbage til vagtplan",
@@ -197,7 +196,6 @@
     "generatedTitle": "AI-vagtplan",
     "generatedDescription": "Generér et udkast fra institutionens åbningstider og den valgte gruppes personale, tilgængelighed og bemandingsregler.",
     "generatedEmptyDescription": "Generér en plan for at se valideret AI-output her.",
-    "generationErrorTitle": "Planen kunne ikke genereres",
     "savedTitle": "Plan gemt",
     "savedDescription": "Gemt som plan {planId}.",
     "aiWarningsTitle": "AI-advarsler",
@@ -205,9 +203,6 @@
     "calendarTitle": "Ugeoverblik",
     "calendarDescription": "Vagternes placering og varighed på en fælles tidslinje.",
     "shiftLabel": "{name}: {start} til {end}",
-    "staffMember": "Medarbejder",
-    "start": "Start",
-    "end": "Slut",
     "noShifts": "Ingen vagter denne dag.",
     "generatedJsonTitle": "Genereret plan JSON",
     "invalidGroup": "Det valgte gruppe-id er ikke gyldigt. Vælg en gruppe fra listen.",
@@ -227,6 +222,94 @@
       "model": "Model",
       "aiWarnings": "AI-advarsler",
       "validationWarnings": "Valideringsadvarsler"
-    }
+    },
+    "validation": {
+      "title": "Valideringsfejl",
+      "description": "Disse brud på hårde regler blokerer for, at planen kan gemmes.",
+      "context": {
+        "day": "{day}",
+        "staff": "{name}",
+        "range": "{start}-{end}",
+        "rule": "Bemandingsregel {number}"
+      },
+      "count": "{count, plural, one {# problem} other {# problemer}}",
+      "group_id_mismatch": "Planen blev genereret for en anden gruppe.",
+      "missing_weekday": "{day} mangler i planen.",
+      "duplicate_weekday": "{day} optræder mere end én gang i planen.",
+      "staffing_rule_outside_opening_hours": "Bemandingsreglen {start}-{end} om {day} passer ikke ind i ét åbningstidsinterval.",
+      "unknown_staff": "Planen indsætter en medarbejder, der ikke er tilknyttet denne gruppe.",
+      "inactive_staff": "{name} er inaktiv og kan ikke sættes på vagt.",
+      "invalid_shift_time": "Vagten {start}-{end} om {day} har et ugyldigt tidsinterval.",
+      "outside_availability": "{name} er sat på vagt {start}-{end} om {day}, hvilket ikke passer ind i ét tilgængelighedsinterval.",
+      "max_hours_exceeded": "{name} er sat på vagt ud over sit ugentlige timemaksimum.",
+      "overlapping_shift": "{name} har overlappende vagter om {day}.",
+      "shift_outside_opening_hours": "{name} er sat på vagt {start}-{end} om {day}, uden for institutionens åbningstider.",
+      "fifo_end_order_inversion": "{name} møder senere, men får fri tidligere end en kollega om {day}.",
+      "min_staff_unmet": "{day} {start}-{end} har ikke nok personale til bemandingsregel {number}.",
+      "min_pedagogs_unmet": "{day} {start}-{end} har ikke nok pædagoger til bemandingsregel {number}."
+    },
+    "readiness": {
+      "title": "Gruppens parathed",
+      "description": "Tjekkes før generering, så problemer vises uden at bruge et AI-kald.",
+      "readyTitle": "Klar til at generere",
+      "readyDescription": "Denne gruppe har alt, hvad der skal til for at generere en vagtplan.",
+      "blockedTitle": "Generering er blokeret",
+      "linkedActiveStaff": "Tilknyttet aktivt personale",
+      "linkedStaff": "Tilknyttet personale",
+      "staffingRules": "Bemandingsregler",
+      "openingHours": "Åbningstidsintervaller",
+      "blocking": {
+        "no_opening_hours": "Institutionen har ingen åbningstider opsat.",
+        "no_staffing_rules": "Denne gruppe har ingen bemandingsregler.",
+        "no_linked_active_staff": "Denne gruppe har ingen tilknyttede aktive medarbejdere.",
+        "staffing_rule_outside_opening_hours": "Bemandingsreglen {start}-{end} om {day} passer ikke ind i ét åbningstidsinterval."
+      },
+      "capacity": {
+        "staffTitle": "Ugentligt underskud i personalekapacitet",
+        "staffDescription": "Tilknyttet aktivt personale kan arbejde {capacity} timer om ugen, men bemandingsreglerne kræver {demand} timer. Mangler {shortfall} timer.",
+        "pedagogTitle": "Ugentligt underskud i pædagogkapacitet",
+        "pedagogDescription": "Tilknyttede aktive pædagoger kan arbejde {capacity} timer om ugen, men bemandingsreglerne kræver {demand} pædagogtimer. Mangler {shortfall} timer.",
+        "note": "Dette er en bekymring på gruppeniveau. Det afgør ikke, om en genereret plan kan accepteres."
+      }
+    },
+    "verdict": {
+      "acceptedTitle": "Accepteret plan",
+      "acceptedDescription": "Denne plan har nul valideringsfejl og kan gemmes.",
+      "blockedTitle": "Planen kan ikke accepteres",
+      "blockedDescription": "{count, plural, one {# valideringsfejl blokerer} other {# valideringsfejl blokerer}} for, at denne plan kan gemmes."
+    },
+    "failure": {
+      "title": "Planen kunne ikke genereres",
+      "invalid_group": "Vælg en gyldig gruppe, før du genererer en plan.",
+      "group_not_found": "Gruppen blev ikke fundet. Vælg en anden gruppe.",
+      "input_not_supported": "Denne gruppes data kan endnu ikke planlægges.",
+      "invalid_review": "Planen kunne ikke læses. Generér en ny plan, og prøv igen.",
+      "plan_no_longer_valid": "Denne plan består ikke længere valideringen mod gruppens aktuelle data. Generér en ny plan.",
+      "gateway_not_configured": "AI Gateway er ikke konfigureret. Tilføj AI_GATEWAY_API_KEY til .env.local, og genstart udviklingsserveren.",
+      "schema_mismatch": "AI'en returnerede et svar, der ikke matchede vagtplanskemaet. Prøv at generere igen.",
+      "gateway_auth": "AI Gateway-godkendelse mislykkedes. Kontrollér at AI_GATEWAY_API_KEY er gyldig, og genstart udviklingsserveren.",
+      "model_rejected": "AI Gateway afviste modellen \"{detail}\". Vælg en model, der er aktiveret for din konto.",
+      "database": "Planen kunne ikke gemmes i databasen. Kontrollér at de nyeste migrationer er kørt.",
+      "gateway_error": "AI Gateway-fejl: {detail}",
+      "unknown": "Planen kunne ikke genereres, fordi AI Gateway returnerede en ukendt fejl."
+    },
+    "aiWarningsDescription": "Noter fra modellen. De er ikke valideringsresultater og afgør ikke, om planen accepteres.",
+    "validationWarningsDescription": "Ikke-blokerende bekymringer. De forhindrer ikke planen i at blive gemt.",
+    "accept": "Accepter og gem plan",
+    "accepting": "Gemmer...",
+    "regenerate": "Generér en ny plan",
+    "viewSavedPlan": "Vis gemt plan",
+    "reviewTitle": "Gennemgå genereret plan",
+    "reviewDescription": "Intet gemmes, før du accepterer denne plan.",
+    "generatingTitle": "Genererer plan",
+    "generatingDescription": "Laver en plan og tjekker den mod bemandingsreglerne.",
+    "developerDetails": "Udviklerdetaljer",
+    "coverage": {
+      "title": "Dækning",
+      "label": "{start}-{end}: {staffCount} af {minStaff} personale, {pedagogCount} af {minPedagogs} pædagoger",
+      "noRequirement": "Intet minimum krævet"
+    },
+    "emptyDayTitle": "Intet planlagt",
+    "generateBlockedReason": "Løs problemerne med gruppens parathed ovenfor, før du genererer en plan."
   }
 }

@@ -1,17 +1,24 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { generateText, Output } from "ai"
 
+import { locales } from "@/i18n/routing"
 import { db } from "@/lib/db"
 import {
   shiftScheduleGenerationAttempts,
   shiftSchedulePlans,
   shiftScheduleShifts,
 } from "@/lib/db/schema"
-import { formatValidationIssuesForUser } from "@/lib/shift-schedule/action-validation"
 import { getScheduleInputByGroupId } from "@/lib/shift-schedule/data"
 import { generateWithValidationRetry } from "@/lib/shift-schedule/generate-with-retry"
 import { shiftSchedulePrompt } from "@/lib/shift-schedule/prompt"
+import { schedulePlanReviewSchema } from "@/lib/shift-schedule/review-types"
+import type {
+  AcceptSchedulePlanState,
+  GenerateSchedulePlanState,
+  ScheduleGenerationFailure,
+} from "@/lib/shift-schedule/review-types"
 import {
   buildShiftScheduleGenerationAttemptInsertValues,
   buildShiftSchedulePlanInsertValues,
@@ -26,34 +33,42 @@ import { uuidPattern } from "@/lib/uuid"
 
 const shiftScheduleModel = "openai/gpt-5.6-luna"
 
-function getGenerateScheduleErrorMessage(error: unknown) {
-  if (error instanceof Error) {
-    const message = error.message
-
-    if (error.name === "ZodError") {
-      return "The AI returned JSON, but it did not match the schedule schema. Try generating again."
-    }
-
-    if (/api key|auth|unauthorized|forbidden|401|403/i.test(message)) {
-      return "AI Gateway authentication failed. Check that AI_GATEWAY_API_KEY in .env.local is valid, then restart pnpm dev."
-    }
-
-    if (
-      /model.*not found|not found.*model|unknown model|unsupported model|404/i.test(
-        message
-      )
-    ) {
-      return `AI Gateway rejected the model "${shiftScheduleModel}". Choose a model that is enabled for your Vercel AI Gateway account.`
-    }
-
-    if (/failed query|database|relation .* does not exist/i.test(message)) {
-      return "The AI generated a plan, but it could not be saved to the database. Check that the latest database migrations have been applied."
-    }
-
-    return `AI Gateway error: ${message}`
+function getGenerateScheduleFailure(error: unknown): ScheduleGenerationFailure {
+  if (!(error instanceof Error)) {
+    return { code: "unknown" }
   }
 
-  return "The AI schedule could not be generated because AI Gateway returned an unknown error."
+  const message = error.message
+
+  if (error.name === "ZodError") {
+    return { code: "schema_mismatch" }
+  }
+
+  if (/api key|auth|unauthorized|forbidden|401|403/i.test(message)) {
+    return { code: "gateway_auth" }
+  }
+
+  if (
+    /model.*not found|not found.*model|unknown model|unsupported model|404/i.test(
+      message
+    )
+  ) {
+    return { code: "model_rejected", detail: shiftScheduleModel }
+  }
+
+  if (/failed query|database|relation .* does not exist/i.test(message)) {
+    return { code: "database" }
+  }
+
+  return { code: "gateway_error", detail: message }
+}
+
+function revalidateSavedPlans() {
+  revalidatePath("/shift-schedule/plans")
+
+  for (const locale of locales) {
+    revalidatePath(`/${locale}/shift-schedule/plans`)
+  }
 }
 
 async function generateParsedSchedulePlan({
@@ -78,39 +93,41 @@ async function generateParsedSchedulePlan({
   return generatedScheduleSchema.parse(result.output)
 }
 
+/**
+ * Produces a generated schedule plan for review. It never writes a schedule
+ * plan or its shifts; only the generation attempt audit trail is recorded here.
+ * Saving happens in `acceptSchedulePlan` once a user accepts the plan.
+ */
 async function generateSchedulePlan(
   _previousState: unknown,
   formData: FormData
-) {
+): Promise<GenerateSchedulePlanState> {
   const groupId = formData.get("groupId")?.toString()
 
   if (!groupId || !uuidPattern.test(groupId)) {
-    return {
-      error: "Choose a valid group before generating a plan.",
-    }
+    return { status: "failed", failure: { code: "invalid_group" } }
   }
 
   const scheduleInput = await getScheduleInputByGroupId(groupId)
 
   if (!scheduleInput) {
-    return {
-      error: "That group could not be found. Choose another group.",
-    }
+    return { status: "failed", failure: { code: "group_not_found" } }
   }
 
   const inputSupportValidation = validateScheduleInputSupport(scheduleInput)
 
   if (!inputSupportValidation.valid) {
     return {
-      error: formatValidationIssuesForUser(inputSupportValidation),
+      status: "failed",
+      failure: {
+        code: "input_not_supported",
+        issues: inputSupportValidation.issues,
+      },
     }
   }
 
   if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL_OIDC_TOKEN) {
-    return {
-      error:
-        "AI Gateway is not configured. Add AI_GATEWAY_API_KEY to .env.local, then restart pnpm dev.",
-    }
+    return { status: "failed", failure: { code: "gateway_not_configured" } }
   }
 
   try {
@@ -134,22 +151,99 @@ async function generateSchedulePlan(
         )
       },
     })
-    if (!attempt.validation.valid) {
-      return {
-        error: formatValidationIssuesForUser(attempt.validation),
-      }
+
+    return {
+      status: "reviewed",
+      review: {
+        plan: attempt.plan,
+        scheduleInput,
+        validationErrors: attempt.validation.issues.filter(
+          (issue) => issue.severity === "error"
+        ),
+        validationWarnings: getValidationWarnings(
+          inputSupportValidation,
+          attempt.validation
+        ),
+        generationId,
+        attemptNumber: attempt.attemptNumber,
+      },
     }
+  } catch (error) {
+    return { status: "failed", failure: getGenerateScheduleFailure(error) }
+  }
+}
 
-    const acceptedPlan = {
-      ...attempt.plan,
-      validationWarnings: getValidationWarnings(
-        inputSupportValidation,
-        attempt.validation
-      ),
+/**
+ * Saves a reviewed plan. The review travels through client state, so the plan
+ * is re-validated here against a freshly loaded schedule input rather than the
+ * copy the client sent back.
+ */
+async function acceptSchedulePlan(
+  _previousState: unknown,
+  formData: FormData
+): Promise<AcceptSchedulePlanState> {
+  const rawReview = formData.get("review")?.toString()
+
+  if (!rawReview) {
+    return { status: "failed", failure: { code: "invalid_review" } }
+  }
+
+  let parsedReview
+
+  try {
+    parsedReview = schedulePlanReviewSchema.parse(JSON.parse(rawReview))
+  } catch {
+    return { status: "failed", failure: { code: "invalid_review" } }
+  }
+
+  const groupId = parsedReview.plan.groupId
+
+  if (!uuidPattern.test(groupId)) {
+    return { status: "failed", failure: { code: "invalid_group" } }
+  }
+
+  const scheduleInput = await getScheduleInputByGroupId(groupId)
+
+  if (!scheduleInput) {
+    return { status: "failed", failure: { code: "group_not_found" } }
+  }
+
+  const inputSupportValidation = validateScheduleInputSupport(scheduleInput)
+
+  if (!inputSupportValidation.valid) {
+    return {
+      status: "failed",
+      failure: {
+        code: "input_not_supported",
+        issues: inputSupportValidation.issues,
+      },
     }
+  }
 
-    const plan = attempt.plan
+  const validation = validateGeneratedSchedule({
+    scheduleInput,
+    generatedSchedule: parsedReview.plan,
+  })
 
+  if (!validation.valid) {
+    return {
+      status: "failed",
+      failure: {
+        code: "plan_no_longer_valid",
+        issues: validation.issues.filter((issue) => issue.severity === "error"),
+      },
+    }
+  }
+
+  const acceptedPlan = {
+    ...parsedReview.plan,
+    validationWarnings: getValidationWarnings(
+      inputSupportValidation,
+      validation
+    ),
+  }
+
+  try {
     const planId = await db.transaction(async (tx) => {
       const [savedPlan] = await tx
         .insert(shiftSchedulePlans)
@@ -162,7 +256,7 @@ async function generateSchedulePlan(
         )
         .returning({ id: shiftSchedulePlans.id })
       const shifts = buildShiftScheduleShiftInsertValues({
-        plan,
+        plan: parsedReview.plan,
         planId: savedPlan.id,
       })
 
@@ -173,28 +267,24 @@ async function generateSchedulePlan(
       await tx.insert(shiftScheduleGenerationAttempts).values(
         buildShiftScheduleGenerationAttemptInsertValues({
           acceptedPlanId: savedPlan.id,
-          attemptNumber: attempt.attemptNumber,
-          generationId,
+          attemptNumber: parsedReview.attemptNumber,
+          generationId: parsedReview.generationId,
           model: shiftScheduleModel,
-          plan,
+          plan: parsedReview.plan,
           scheduleInput,
-          validation: attempt.validation,
+          validation,
         })
       )
 
       return savedPlan.id
     })
 
-    return {
-      plan: acceptedPlan,
-      planId,
-      planJson: JSON.stringify(acceptedPlan, null, 2),
-    }
+    revalidateSavedPlans()
+
+    return { status: "accepted", planId }
   } catch (error) {
-    return {
-      error: getGenerateScheduleErrorMessage(error),
-    }
+    return { status: "failed", failure: getGenerateScheduleFailure(error) }
   }
 }
 
-export { generateSchedulePlan }
+export { acceptSchedulePlan, generateSchedulePlan }
