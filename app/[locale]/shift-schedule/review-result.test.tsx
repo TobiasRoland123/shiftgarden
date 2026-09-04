@@ -203,6 +203,7 @@ describe("ReviewResult", () => {
 
     expect(screen.getByText("Week overview")).toBeInTheDocument()
     expect(screen.getByText("Ada Lovelace")).toBeInTheDocument()
+    expect(screen.getByText("(3 h)")).toBeInTheDocument()
     expect(screen.getByText("Pedagog")).toBeInTheDocument()
     expect(
       screen.getByLabelText("Ada Lovelace: 09:00 to 12:00")
@@ -210,5 +211,37 @@ describe("ReviewResult", () => {
     expect(
       screen.getByLabelText("09:00-12:00: 1 of 2 staff, 1 of 1 pedagogs")
     ).toBeInTheDocument()
+  })
+
+  it("sums split shifts without counting the gap and localizes fractional hours", () => {
+    const plan = createPlan()
+    plan.days[0].shifts = [
+      { staffId: "staff-1", startTime: "08:00", endTime: "11:00" },
+      { staffId: "staff-1", startTime: "12:00", endTime: "15:30" },
+    ]
+
+    renderWithIntl(
+      <ReviewResult
+        acceptState={{ status: "idle" }}
+        formAction={() => {}}
+        isAccepting={false}
+        review={createReview({ plan })}
+      />,
+      { locale: "da" }
+    )
+
+    expect(screen.getByText("(6,5 t)")).toBeInTheDocument()
+  })
+
+  it("shows the daily total for a shift assigned to an unknown staff id", () => {
+    const plan = createPlan()
+    plan.days[0].shifts = [
+      { staffId: "unassigned", startTime: "09:15", endTime: "10:45" },
+    ]
+
+    renderReview(createReview({ plan }))
+
+    expect(screen.getByText("unassigned")).toBeInTheDocument()
+    expect(screen.getByText("(1.5 h)")).toBeInTheDocument()
   })
 })

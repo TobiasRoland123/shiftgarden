@@ -203,6 +203,7 @@
     "calendarTitle": "Week overview",
     "calendarDescription": "Shift placement and duration on a shared timeline.",
     "shiftLabel": "{name}: {start} to {end}",
+    "dailyHours": "({hours, number} h)",
     "noShifts": "No shifts for this day.",
     "generatedJsonTitle": "Generated plan JSON",
     "invalidGroup": "The selected group id is not valid. Choose a group from the list.",
