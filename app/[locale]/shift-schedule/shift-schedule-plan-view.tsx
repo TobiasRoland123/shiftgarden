@@ -9,7 +9,7 @@ import type {
   GeneratedSchedule,
   ScheduleInput,
 } from "@/lib/shift-schedule/schemas"
-import type { DayOfWeek } from "@/lib/shift-schedule/shifts"
+import { timeToMinutes, type DayOfWeek } from "@/lib/shift-schedule/shifts"
 import {
   getDayTimelineBounds,
   getShiftBarGeometry,
@@ -361,6 +361,17 @@ function ShiftSchedulePlanView({
                 ) : (
                   staffIds.map((staffId) => {
                     const staff = staffById.get(staffId)
+                    const staffShifts = dayShifts.filter(
+                      (shift) => shift.staffId === staffId
+                    )
+                    const scheduledHours =
+                      staffShifts.reduce(
+                        (totalMinutes, shift) =>
+                          totalMinutes +
+                          timeToMinutes(shift.endTime) -
+                          timeToMinutes(shift.startTime),
+                        0
+                      ) / MINUTES_PER_HOUR
                     const name = staff
                       ? `${staff.firstName} ${staff.lastName}`
                       : staffId
@@ -371,8 +382,13 @@ function ShiftSchedulePlanView({
                         key={staffId}
                       >
                         <span className="sticky left-0 z-10 flex min-w-0 flex-col bg-background">
-                          <span className="truncate text-sm" title={name}>
-                            {name}
+                          <span className="flex min-w-0 items-baseline gap-1 text-sm">
+                            <span className="truncate" title={name}>
+                              {name}
+                            </span>
+                            <span className="ml-auto shrink-0 font-medium text-muted-foreground tabular-nums">
+                              {t("dailyHours", { hours: scheduledHours })}
+                            </span>
                           </span>
                           {staff ? (
                             <span className="text-xs text-muted-foreground">
@@ -396,9 +412,7 @@ function ShiftSchedulePlanView({
                           dayOfWeek={dayOfWeek}
                           name={name}
                           selectedIssue={selectedIssue}
-                          shifts={dayShifts.filter(
-                            (shift) => shift.staffId === staffId
-                          )}
+                          shifts={staffShifts}
                         />
                       </div>
                     )

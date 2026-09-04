@@ -203,6 +203,7 @@
     "calendarTitle": "Ugeoverblik",
     "calendarDescription": "Vagternes placering og varighed på en fælles tidslinje.",
     "shiftLabel": "{name}: {start} til {end}",
+    "dailyHours": "({hours, number} t)",
     "noShifts": "Ingen vagter denne dag.",
     "generatedJsonTitle": "Genereret plan JSON",
     "invalidGroup": "Det valgte gruppe-id er ikke gyldigt. Vælg en gruppe fra listen.",
