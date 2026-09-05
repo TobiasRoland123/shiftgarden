@@ -5,13 +5,16 @@ import { eq } from "drizzle-orm"
 
 import { redirect } from "@/i18n/navigation"
 import { defaultLocale, locales, type Locale } from "@/i18n/routing"
-import { db } from "@/lib/db"
 import { staffMemberAvailability, staffMembers } from "@/lib/db/schema"
 import {
   isStaffRole,
   isWeekdayAvailability,
   weekdayAvailability,
 } from "@/lib/staff"
+import {
+  touchPlanningSources,
+  withPlanningCoordination,
+} from "@/lib/planning/source-coordination"
 
 type StaffFormState = {
   errors: string[]
@@ -102,25 +105,28 @@ async function createStaff(
     return { errors }
   }
 
-  const [createdStaffMember] = await db
-    .insert(staffMembers)
-    .values({
-      firstName,
-      lastName,
-      role,
-      maxHoursPerWeek,
-      active,
-    })
-    .returning({ id: staffMembers.id })
-
-  if (availability.rows.length > 0) {
-    await db.insert(staffMemberAvailability).values(
-      availability.rows.map((row) => ({
-        staffMemberId: createdStaffMember.id,
-        ...row,
-      }))
+  const createdStaffMember = await withPlanningCoordination(async (tx) => {
+    const [created] = await tx
+      .insert(staffMembers)
+      .values({ firstName, lastName, role, maxHoursPerWeek, active })
+      .returning({ id: staffMembers.id })
+    if (!created) throw new Error("Staff member could not be created.")
+    if (availability.rows.length > 0)
+      await tx.insert(staffMemberAvailability).values(
+        availability.rows.map((row) => ({
+          staffMemberId: created.id,
+          ...row,
+        }))
+      )
+    await touchPlanningSources(
+      [
+        { sourceType: "staff", sourceId: created.id },
+        { sourceType: "staff_availability", sourceId: created.id },
+      ],
+      tx
     )
-  }
+    return created
+  })
 
   revalidatePath("/staff")
   if (locale !== defaultLocale) {
@@ -170,34 +176,34 @@ async function updateStaff(
     return { errors }
   }
 
-  const [updatedStaffMember] = await db
-    .update(staffMembers)
-    .set({
-      firstName,
-      lastName,
-      role,
-      maxHoursPerWeek,
-      active,
-    })
-    .where(eq(staffMembers.id, staffMemberId))
-    .returning({ id: staffMembers.id })
-
-  if (!updatedStaffMember) {
-    return { errors: ["Staff member could not be found."] }
-  }
-
-  await db
-    .delete(staffMemberAvailability)
-    .where(eq(staffMemberAvailability.staffMemberId, updatedStaffMember.id))
-
-  if (availability.rows.length > 0) {
-    await db.insert(staffMemberAvailability).values(
-      availability.rows.map((row) => ({
-        staffMemberId: updatedStaffMember.id,
-        ...row,
-      }))
+  const updatedStaffMember = await withPlanningCoordination(async (tx) => {
+    const [updated] = await tx
+      .update(staffMembers)
+      .set({ firstName, lastName, role, maxHoursPerWeek, active })
+      .where(eq(staffMembers.id, staffMemberId))
+      .returning({ id: staffMembers.id })
+    if (!updated) return undefined
+    await tx
+      .delete(staffMemberAvailability)
+      .where(eq(staffMemberAvailability.staffMemberId, updated.id))
+    if (availability.rows.length > 0)
+      await tx.insert(staffMemberAvailability).values(
+        availability.rows.map((row) => ({
+          staffMemberId: updated.id,
+          ...row,
+        }))
+      )
+    await touchPlanningSources(
+      [
+        { sourceType: "staff", sourceId: updated.id },
+        { sourceType: "staff_availability", sourceId: updated.id },
+      ],
+      tx
     )
-  }
+    return updated
+  })
+  if (!updatedStaffMember)
+    return { errors: ["Staff member could not be found."] }
 
   revalidatePath("/staff")
   revalidatePath(`/staff/${updatedStaffMember.id}`)

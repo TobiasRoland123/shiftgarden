@@ -4,6 +4,7 @@ import { asc, eq } from "drizzle-orm"
 
 import { Link } from "@/i18n/navigation"
 import { StaffSelect } from "@/components/staff-select"
+import { ExceptionList } from "@/components/planning/planning-components"
 import { Button } from "@/components/ui/button"
 import { db } from "@/lib/db"
 import {
@@ -19,6 +20,8 @@ import {
   groupStaffRulesByWeekday,
 } from "@/lib/groups"
 import { buildAvailableStaffOptions, formatStaffRole } from "@/lib/staff"
+import { getOwnerPlanningExceptions } from "@/lib/planning/view"
+import { planningReturnTo } from "@/lib/planning/return-to"
 import { linkGroupToStaff, unlinkGroupFromStaff } from "./actions"
 
 const uuidPattern =
@@ -26,12 +29,17 @@ const uuidPattern =
 
 export default async function GroupDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ returnTo?: string }>
 }) {
   const { id } = await params
+  const query = await searchParams
   const t = await getTranslations("groups")
   const tStaff = await getTranslations("staff")
+  const tPlanning = await getTranslations("planning")
+  const returnTo = planningReturnTo(query.returnTo, "")
 
   if (!uuidPattern.test(id)) {
     notFound()
@@ -46,6 +54,7 @@ export default async function GroupDetailPage({
   if (!group) {
     notFound()
   }
+  const planningExceptions = await getOwnerPlanningExceptions("group", group.id)
 
   const rules = await db
     .select()
@@ -104,6 +113,13 @@ export default async function GroupDetailPage({
   return (
     <div className="flex min-h-svh flex-col gap-6 p-6">
       <div className="flex flex-col gap-4">
+        {returnTo ? (
+          <Button asChild variant="outline" className="w-fit">
+            <Link href={returnTo as "/planning"}>
+              {tPlanning("returnToPreparation")}
+            </Link>
+          </Button>
+        ) : null}
         <div className="flex items-center justify-between gap-4">
           <Button asChild variant="ghost" className="w-fit">
             <Link href="/groups">{t("backToGroups")}</Link>
@@ -274,6 +290,32 @@ export default async function GroupDetailPage({
             ))}
           </div>
         )}
+      </section>
+
+      <section className="rounded-lg border border-dashed p-4">
+        <h2 className="font-medium">{tPlanning("exceptionsAffectingOwner")}</h2>
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+          {tPlanning("groupExceptionsDescription")}
+        </p>
+        <Button asChild className="mt-4" variant="outline">
+          <Link
+            href={
+              returnTo
+                ? {
+                    pathname: `/groups/${group.id}/exceptions/new`,
+                    query: { returnTo },
+                  }
+                : `/groups/${group.id}/exceptions/new`
+            }
+          >
+            {tPlanning("addStaffingException")}
+          </Link>
+        </Button>
+        <ExceptionList
+          items={planningExceptions}
+          baseHref={`/groups/${group.id}`}
+          returnTo={returnTo || undefined}
+        />
       </section>
     </div>
   )

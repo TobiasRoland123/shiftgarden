@@ -5,7 +5,6 @@ import { eq } from "drizzle-orm"
 
 import { redirect } from "@/i18n/navigation"
 import { defaultLocale, locales, type Locale } from "@/i18n/routing"
-import { db } from "@/lib/db"
 import {
   groups,
   groupStaffRules,
@@ -18,6 +17,11 @@ import {
   type StaffingRuleValues,
 } from "@/lib/groups"
 import { intervalFitsWithin } from "@/lib/opening-hours"
+import {
+  touchPlanningSources,
+  withPlanningCoordination,
+  type PlanningExecutor,
+} from "@/lib/planning/source-coordination"
 
 type GroupFormState = {
   errors: string[]
@@ -89,11 +93,6 @@ function getStaffingRuleValues(formData: FormData, prefix: string) {
       continue
     }
 
-    if (minPedagogs > minStaff) {
-      errors.push("Minimum pedagogs cannot be higher than minimum staff.")
-      continue
-    }
-
     rows.push({
       startTime,
       endTime,
@@ -128,12 +127,15 @@ function getGroupStaffRuleRows(formData: FormData) {
   }
 }
 
-async function getOpeningHoursErrors(rules: GroupStaffRuleRow[]) {
+async function getOpeningHoursErrors(
+  rules: GroupStaffRuleRow[],
+  executor: PlanningExecutor
+) {
   if (rules.length === 0) {
     return []
   }
 
-  const openingHours = await db
+  const openingHours = await executor
     .select({
       dayOfWeek: institutionOpeningHours.dayOfWeek,
       startTime: institutionOpeningHours.startTime,
@@ -161,25 +163,34 @@ async function createGroup(
     errors.push("Name is required.")
   }
 
-  errors.push(...(await getOpeningHoursErrors(rules.rows)))
-
   if (errors.length > 0) {
     return { errors }
   }
 
-  const [createdGroup] = await db
-    .insert(groups)
-    .values({ name })
-    .returning({ id: groups.id })
-
-  if (rules.rows.length > 0) {
-    await db.insert(groupStaffRules).values(
-      rules.rows.map((row) => ({
-        groupId: createdGroup.id,
-        ...row,
-      }))
+  const result = await withPlanningCoordination(async (tx) => {
+    const openingHoursErrors = await getOpeningHoursErrors(rules.rows, tx)
+    if (openingHoursErrors.length > 0)
+      return { ok: false as const, errors: openingHoursErrors }
+    const [created] = await tx
+      .insert(groups)
+      .values({ name })
+      .returning({ id: groups.id })
+    if (!created) throw new Error("Group could not be created.")
+    if (rules.rows.length > 0)
+      await tx
+        .insert(groupStaffRules)
+        .values(rules.rows.map((row) => ({ groupId: created.id, ...row })))
+    await touchPlanningSources(
+      [
+        { sourceType: "group", sourceId: created.id },
+        { sourceType: "group_staff_rules", sourceId: created.id },
+      ],
+      tx
     )
-  }
+    return { ok: true as const, created }
+  })
+  if (!result.ok) return { errors: result.errors }
+  const createdGroup = result.created
 
   revalidatePath("/groups")
   if (locale !== defaultLocale) {
@@ -208,32 +219,37 @@ async function updateGroup(
     errors.push("Name is required.")
   }
 
-  errors.push(...(await getOpeningHoursErrors(rules.rows)))
-
   if (errors.length > 0) {
     return { errors }
   }
 
-  const [updatedGroup] = await db
-    .update(groups)
-    .set({ name })
-    .where(eq(groups.id, groupId))
-    .returning({ id: groups.id })
-
-  if (!updatedGroup) {
-    return { errors: ["Group could not be found."] }
-  }
-
-  await db.delete(groupStaffRules).where(eq(groupStaffRules.groupId, groupId))
-
-  if (rules.rows.length > 0) {
-    await db.insert(groupStaffRules).values(
-      rules.rows.map((row) => ({
-        groupId: updatedGroup.id,
-        ...row,
-      }))
+  const result = await withPlanningCoordination(async (tx) => {
+    const openingHoursErrors = await getOpeningHoursErrors(rules.rows, tx)
+    if (openingHoursErrors.length > 0)
+      return { ok: false as const, errors: openingHoursErrors }
+    const [updated] = await tx
+      .update(groups)
+      .set({ name })
+      .where(eq(groups.id, groupId))
+      .returning({ id: groups.id })
+    if (!updated)
+      return { ok: false as const, errors: ["Group could not be found."] }
+    await tx.delete(groupStaffRules).where(eq(groupStaffRules.groupId, groupId))
+    if (rules.rows.length > 0)
+      await tx
+        .insert(groupStaffRules)
+        .values(rules.rows.map((row) => ({ groupId: updated.id, ...row })))
+    await touchPlanningSources(
+      [
+        { sourceType: "group", sourceId: updated.id },
+        { sourceType: "group_staff_rules", sourceId: updated.id },
+      ],
+      tx
     )
-  }
+    return { ok: true as const, updated }
+  })
+  if (!result.ok) return { errors: result.errors }
+  const updatedGroup = result.updated
 
   revalidatePath("/groups")
   revalidatePath(`/groups/${updatedGroup.id}`)

@@ -5,11 +5,11 @@ ShiftGarden manages staff, group staffing needs, and generated shift schedule pl
 ## Language
 
 **Generated schedule plan**:
-A proposed weekly schedule produced by the AI for one **Group** from the current staff, availability, and staffing rules.
+A proposed schedule produced by the AI for one **Group** and an inclusive range of actual dates from current effective inputs. Undated weekly plans remain legacy records.
 _Avoid_: AI answer, AI schedule when referring to the persisted domain concept
 
 **Accepted plan**:
-A generated schedule plan that has zero **Validation errors** and is allowed to be saved as a schedule plan.
+A generated schedule plan that has zero **Validation errors** and can be saved as an unpublished working draft. Acceptance does not publish it or guarantee that it remains valid after inputs change.
 _Avoid_: Valid-looking plan, approved draft
 
 **Validation error**:
@@ -45,8 +45,29 @@ The minimum number of covering staff members with role pedagog inside a **Staffi
 _Avoid_: Extra pedagogs
 
 **Institution opening hours**:
-The future business-wide time range when staff coverage may be needed across one or more groups. Institution opening hours do not exist in the current scheduling model.
+The institution-wide intervals that bound shifts on all seven days of the week. Dated opening replacements can close a date or replace its usual intervals. Staffing rules define minimum coverage inside those hours.
 _Avoid_: Group staffing rule when referring to the broader institution boundary
+
+**Planning period**:
+One group's inclusive date range in the institution's snapshotted IANA timezone. Active periods for the same group cannot overlap. Adjacent periods are allowed.
+
+**Working draft**:
+The period's single editable schedule, with a monotonic revision. Structurally valid manual changes can be saved with scheduling errors. Generation, AI application, and publication require zero current errors.
+
+**Published version**:
+An immutable official schedule with shift, input, validation, and display-identity snapshots. Editing creates a draft revision. The current version remains official until replacement publication.
+
+**Effective inputs**:
+Recurring opening hours, requirements, and availability expanded onto actual dates, then composed with owned exceptions, event attendance, and current published commitments. A relevant-input fingerprint detects changes without replacing manual shifts.
+
+**Owned exception**:
+A dated change recorded on an institution, group, or staff member. Opening replacements can trim recurring demand. Explicit dated demand outside effective opening hours is a conflict. Absence and event attendance restrict availability across every linked group.
+
+**Reviewed AI proposal**:
+A separate patch tied to a draft revision, relevant-input fingerprint, and explicit calendar scope. Its preview does not edit the draft. Applying it requires current server validation and respects locked shifts.
+
+**Weekly committed work**:
+Candidate shifts, authoritative published shifts, and counted meeting or training attendance in one local Monday-Sunday week. Partial periods use the full week's cap and commitments. Other drafts warn but do not reserve staff. A revision substitutes for its own official version.
 
 ## Example Dialogue
 
@@ -56,7 +77,7 @@ Domain expert: "Only if deterministic validation finds zero validation errors. A
 
 Developer: "If validation finds a staff member scheduled outside availability, is that a warning?"
 
-Domain expert: "No. That is a validation error because it breaks a hard scheduling rule and blocks saving."
+Domain expert: "No. That is a validation error because it breaks a hard scheduling rule. A manual draft can retain it, but generation acceptance, AI application, and publication are blocked."
 
 Developer: "Anna is available 08:00-12:00 and 13:00-16:00. Can one shift run 11:00-14:00?"
 
@@ -68,7 +89,7 @@ Domain expert: "Neither replaces the other. Both staffing rules must be satisfie
 
 Developer: "Can the AI schedule someone outside every staffing rule?"
 
-Domain expert: "Not in the current model. Later, institution opening hours should define the broader allowed schedule window, while group staffing rules define minimum coverage."
+Domain expert: "Yes, inside an effective institution opening interval and subject to all other rules. Staffing rules define minimum coverage, not the outer shift boundary."
 
 Developer: "If a staffing rule needs 2 staff and 1 pedagog, can that be 1 pedagog and 1 assistant?"
 

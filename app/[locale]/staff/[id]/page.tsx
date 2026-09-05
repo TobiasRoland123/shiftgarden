@@ -4,6 +4,7 @@ import { asc, eq } from "drizzle-orm"
 
 import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
+import { ExceptionList } from "@/components/planning/planning-components"
 import { db } from "@/lib/db"
 import {
   groups,
@@ -18,17 +19,24 @@ import {
   getAvailabilityHoursMismatch,
 } from "@/lib/staff"
 import { linkStaffToGroup, unlinkStaffFromGroup } from "./actions"
+import { getOwnerPlanningExceptions } from "@/lib/planning/view"
+import { planningReturnTo } from "@/lib/planning/return-to"
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export default async function StaffDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ returnTo?: string }>
 }) {
   const { id } = await params
+  const query = await searchParams
   const t = await getTranslations("staff")
+  const tPlanning = await getTranslations("planning")
+  const returnTo = planningReturnTo(query.returnTo, "")
 
   if (!uuidPattern.test(id)) {
     notFound()
@@ -43,6 +51,10 @@ export default async function StaffDetailPage({
   if (!staffMember) {
     notFound()
   }
+  const planningExceptions = await getOwnerPlanningExceptions(
+    "staff",
+    staffMember.id
+  )
 
   const availability = await db
     .select()
@@ -80,6 +92,13 @@ export default async function StaffDetailPage({
   return (
     <div className="flex min-h-svh flex-col gap-6 p-6">
       <div className="flex flex-col gap-4">
+        {returnTo ? (
+          <Button asChild variant="outline" className="w-fit">
+            <Link href={returnTo as "/planning"}>
+              {tPlanning("returnToPreparation")}
+            </Link>
+          </Button>
+        ) : null}
         <div className="flex items-center justify-between gap-4">
           <Button asChild variant="ghost" className="w-fit">
             <Link href="/staff">{t("backToStaff")}</Link>
@@ -248,6 +267,32 @@ export default async function StaffDetailPage({
             </table>
           </div>
         )}
+      </section>
+
+      <section className="rounded-lg border border-dashed p-4">
+        <h2 className="font-medium">{tPlanning("exceptionsAffectingOwner")}</h2>
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+          {tPlanning("staffExceptionsDescription")}
+        </p>
+        <Button asChild className="mt-4" variant="outline">
+          <Link
+            href={
+              returnTo
+                ? {
+                    pathname: `/staff/${staffMember.id}/exceptions/new`,
+                    query: { returnTo },
+                  }
+                : `/staff/${staffMember.id}/exceptions/new`
+            }
+          >
+            {tPlanning("addStaffException")}
+          </Link>
+        </Button>
+        <ExceptionList
+          items={planningExceptions}
+          baseHref={`/staff/${staffMember.id}`}
+          returnTo={returnTo || undefined}
+        />
       </section>
     </div>
   )

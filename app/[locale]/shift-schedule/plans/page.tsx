@@ -48,7 +48,7 @@ export default async function SavedPlansPage({ params }: SavedPlansPageProps) {
     <div className="flex min-h-svh flex-col gap-6 p-6">
       <div className="flex flex-col gap-4">
         <Button asChild variant="ghost" className="w-fit">
-          <Link href="/shift-schedule">{t("backToShiftSchedule")}</Link>
+          <Link href="/planning">{t("backToShiftSchedule")}</Link>
         </Button>
         <div>
           <h1 className="text-2xl font-medium tracking-normal">
@@ -67,7 +67,7 @@ export default async function SavedPlansPage({ params }: SavedPlansPageProps) {
             {t("savedPlansEmptyDescription")}
           </p>
           <Button asChild className="mt-4">
-            <Link href="/shift-schedule">{t("createPlan")}</Link>
+            <Link href="/planning">{t("createPlan")}</Link>
           </Button>
         </section>
       ) : (

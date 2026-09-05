@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache"
 
-import { db } from "@/lib/db"
 import { groupStaffRules, institutionOpeningHours } from "@/lib/db/schema"
 import {
   intervalFitsWithin,
@@ -10,6 +9,10 @@ import {
   type TimeInterval,
 } from "@/lib/opening-hours"
 import { daysOfWeek } from "@/lib/staff"
+import {
+  touchPlanningSources,
+  withPlanningCoordination,
+} from "@/lib/planning/source-coordination"
 
 type OpeningHoursFormState = {
   errors: string[]
@@ -63,31 +66,35 @@ async function updateOpeningHours(
     return { errors: openingHours.errors }
   }
 
-  const rules = await db
-    .select({
-      dayOfWeek: groupStaffRules.dayOfWeek,
-      startTime: groupStaffRules.startTime,
-      endTime: groupStaffRules.endTime,
-    })
-    .from(groupStaffRules)
-  const uncoveredRule = rules.find(
-    (rule) => !intervalFitsWithin(rule, openingHours.rows)
-  )
-
-  if (uncoveredRule) {
-    return {
-      errors: [
-        `Opening hours must contain every staffing rule. Check ${uncoveredRule.dayOfWeek} ${uncoveredRule.startTime.slice(0, 5)}-${uncoveredRule.endTime.slice(0, 5)}.`,
-      ],
+  const result = await withPlanningCoordination(async (tx) => {
+    const rules = await tx
+      .select({
+        dayOfWeek: groupStaffRules.dayOfWeek,
+        startTime: groupStaffRules.startTime,
+        endTime: groupStaffRules.endTime,
+      })
+      .from(groupStaffRules)
+    const uncoveredRule = rules.find(
+      (rule) => !intervalFitsWithin(rule, openingHours.rows)
+    )
+    if (uncoveredRule) {
+      return {
+        errors: [
+          `Opening hours must contain every staffing rule. Check ${uncoveredRule.dayOfWeek} ${uncoveredRule.startTime.slice(0, 5)}-${uncoveredRule.endTime.slice(0, 5)}.`,
+        ],
+      }
     }
-  }
-
-  await db.transaction(async (tx) => {
     await tx.delete(institutionOpeningHours)
     if (openingHours.rows.length > 0) {
       await tx.insert(institutionOpeningHours).values(openingHours.rows)
     }
+    await touchPlanningSources(
+      [{ sourceType: "institution_opening_hours", sourceId: "1" }],
+      tx
+    )
+    return { errors: [] }
   })
+  if (result.errors.length > 0) return result
 
   revalidatePath("/settings/opening-hours")
   return { errors: [], saved: true }

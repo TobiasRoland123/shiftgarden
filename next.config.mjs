@@ -7,6 +7,7 @@ import createNextIntlPlugin from "next-intl/plugin"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const nextConfig = {
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   turbopack: {
     root: __dirname,
   },

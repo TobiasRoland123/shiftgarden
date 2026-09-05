@@ -35,8 +35,8 @@ const navItems = [
     icon: UserRoundCog,
   },
   {
-    titleKey: "shiftSchedule",
-    href: "/shift-schedule",
+    titleKey: "planning",
+    href: "/planning",
     icon: CalendarDays,
   },
   {

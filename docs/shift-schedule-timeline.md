@@ -1,15 +1,9 @@
-# Shift Schedule Timeline Scope
+# Schedule calendars
 
-The first version is a read-only weekly timeline for one Group's generated schedule plan or saved schedule plan.
+Planning uses actual dates for one group and an inclusive period. Day and Monday-Sunday week views retain period context. Dates outside the period provide context only. Local times do not change with the browser's timezone.
 
-## Product choices
+The working draft supports exact-time forms, shift creation, reassignment, deletion, locks, undo, and pointer movement/resizing. Manual scheduling errors remain visible in saved work. Total staff and pedagog coverage are evaluated separately on exact interval boundaries. Attendance blocks supply no coverage and remain read-only.
 
-- **View:** One Monday-Friday week with a shared horizontal time axis. Day and month views are out of scope.
-- **Grouping:** Shifts are grouped by weekday, with one staff-labelled row per shift. Staff members have stable colors. The Group is identified by the surrounding page because each plan belongs to one Group.
-- **Filtering:** No timeline-level filters in the first version. Users select a Group before generating a plan; staff and cross-group filters can be added later.
-- **Editing:** Read-only. Direct shift editing, moving, and resizing are future enhancements.
-- **Status:** Generated and saved schedule plans use the same timeline. Their surrounding page and status messaging distinguish them; individual bars do not repeat a plan-wide status.
-- **Shift details:** The row shows the staff member, the weekday heading shows the date context available in the current weekly model, and each bar shows start and end time. The Group remains visible in the page context.
-- **Concerns:** AI warnings remain visible above the timeline. Coverage gaps, conflicts, staffing-rule overlays, and deterministic validation details are not added to the timeline in this version.
+AI proposals show before/after changes separately from saved shifts. Apply commits the entire current, valid proposal as one draft revision. Discard leaves saved shifts unchanged. Publication is a separate action after current full-period review. Official versions open read-only; editing them creates or resumes a draft revision.
 
-The timeline derives a shared start and end from all shifts, rounded outward to whole hours. Empty plans use 08:00-17:00 so the weekly structure remains readable.
+The old saved-plan timeline remains available for undated legacy records. It supports all seven weekdays and does not invent calendar dates or publication status. Its time axis is derived from shifts and uses 08:00-17:00 for empty plans.

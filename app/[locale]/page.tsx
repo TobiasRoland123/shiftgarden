@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server"
 
 import { Button } from "@/components/ui/button"
+import { Link } from "@/i18n/navigation"
 
 export default async function Page() {
   const t = await getTranslations("home")
@@ -12,7 +13,9 @@ export default async function Page() {
           <h1 className="font-medium">{t("title")}</h1>
           <p>{t("intro")}</p>
           <p>{t("componentNote")}</p>
-          <Button className="mt-2">{t("button")}</Button>
+          <Button className="mt-2" asChild>
+            <Link href="/planning">{t("button")}</Link>
+          </Button>
         </div>
         <div className="font-mono text-xs text-muted-foreground">
           {t.rich("themeHint", {

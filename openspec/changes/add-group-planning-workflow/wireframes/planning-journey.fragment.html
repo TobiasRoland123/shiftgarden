@@ -1,0 +1,264 @@
+<div id="sg-journey" aria-label="ShiftGarden connected planning wireframes">
+<style>
+  #sg-journey { --sg-paper:light-dark(#fff,#1b201d); --sg-ink:light-dark(#24382c,#e3eae5); --sg-muted:light-dark(#637268,#a6b8ac); --sg-soft:light-dark(#f3f6f3,#252e27); --sg-line:light-dark(#dce4dd,#3d4d41); --sg-green:light-dark(#285b3d,#a7d6b6); --sg-tint:light-dark(#e7f1e8,#2c4232); --sg-warn:light-dark(#805319,#f3c889); --sg-wash:light-dark(#fff3dc,#443625); --sg-blue:light-dark(#315f99,#b2cff5); --sg-preview:light-dark(#eaf2ff,#273b55); font-family:Arial,sans-serif; font-size:14px; line-height:1.45; color:var(--sg-ink); }
+  #sg-journey * { box-sizing:border-box; }
+  #sg-journey [hidden] { display:none!important; }
+  #sg-journey button,#sg-journey input,#sg-journey select { font:inherit; }
+  #sg-journey button { padding:8px 12px; border:1px solid var(--sg-line); border-radius:6px; color:var(--sg-ink); background:var(--sg-paper); cursor:pointer; }
+  #sg-journey button:hover { background:var(--sg-soft); }
+  #sg-journey button.primary { background:var(--sg-green); color:var(--sg-paper); border-color:var(--sg-green); }
+  #sg-journey button.quiet { border-color:transparent; background:transparent; color:var(--sg-muted); padding:5px 0; }
+  #sg-journey .explore { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:0 0 14px; }
+  #sg-journey .explore button[aria-pressed="true"] { background:var(--sg-tint); color:var(--sg-green); border-color:var(--sg-green); }
+  #sg-journey .muted { color:var(--sg-muted); }
+  #sg-journey .small { font-size:12px; }
+  #sg-journey .app { background:var(--sg-paper); border:1px solid var(--sg-line); border-radius:10px; overflow:hidden; }
+  #sg-journey .top { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:16px 20px; border-bottom:1px solid var(--sg-line); }
+  #sg-journey .brand { display:flex; align-items:center; gap:8px; color:var(--sg-green); font-weight:500; }
+  #sg-journey .shell { display:grid; grid-template-columns:128px minmax(0,1fr); }
+  #sg-journey .sidebar { background:var(--sg-soft); padding:18px 10px; border-right:1px solid var(--sg-line); }
+  #sg-journey .sidebar span { display:block; padding:9px; margin-bottom:4px; }
+  #sg-journey .sidebar .active { background:var(--sg-tint); color:var(--sg-green); border-radius:6px; font-weight:500; }
+  #sg-journey .main { min-width:0; padding:22px; }
+  #sg-journey .crumb { color:var(--sg-muted); display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:17px; font-size:12px; }
+  #sg-journey h2 { margin:0 0 6px; font-size:23px; line-height:1.25; font-weight:500; }
+  #sg-journey h3 { margin:0 0 10px; font-size:15px; font-weight:500; }
+  #sg-journey p { margin:0 0 12px; }
+  #sg-journey strong { font-weight:500; }
+  #sg-journey .heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; margin-bottom:22px; }
+  #sg-journey .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  #sg-journey .spread { justify-content:space-between; }
+  #sg-journey .badge { display:inline-block; font-size:12px; padding:4px 9px; border-radius:16px; background:var(--sg-soft); color:var(--sg-muted); }
+  #sg-journey .badge.good { background:var(--sg-tint); color:var(--sg-green); }
+  #sg-journey .notice { padding:12px 14px; margin:16px 0; background:var(--sg-soft); border-left:3px solid var(--sg-line); }
+  #sg-journey .notice.warn { background:var(--sg-wash); border-color:var(--sg-warn); color:var(--sg-warn); }
+  #sg-journey .notice.good { background:var(--sg-tint); border-color:var(--sg-green); color:var(--sg-green); }
+  #sg-journey .notice.preview { background:var(--sg-preview); border-color:var(--sg-blue); color:var(--sg-blue); }
+  #sg-journey .section { margin-top:24px; }
+  #sg-journey .period { display:grid; grid-template-columns:1fr auto auto; gap:20px; padding:22px 0; align-items:center; border-top:1px solid var(--sg-line); border-bottom:1px solid var(--sg-line); }
+  #sg-journey .period strong { display:block; margin-bottom:4px; }
+  #sg-journey .actions { display:flex; flex-wrap:wrap; gap:9px; justify-content:flex-end; margin-top:24px; }
+  #sg-journey .fields { display:flex; flex-wrap:wrap; gap:16px; margin:22px 0; }
+  #sg-journey label.field { display:grid; gap:6px; flex:1; min-width:140px; }
+  #sg-journey input,#sg-journey select { padding:9px; background:var(--sg-paper); border:1px solid var(--sg-line); border-radius:6px; color:var(--sg-ink); min-width:0; width:100%; }
+  #sg-journey .source-row { display:grid; grid-template-columns:76px 1fr auto; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--sg-line); }
+  #sg-journey .source-row small { display:block; color:var(--sg-muted); font-size:12px; margin-top:3px; }
+  #sg-journey details { padding:12px 0; border-bottom:1px solid var(--sg-line); }
+  #sg-journey summary { cursor:pointer; }
+  #sg-journey details p { margin:12px 0 0; color:var(--sg-muted); }
+  #sg-journey .editor-layout { display:grid; grid-template-columns:minmax(0,1fr) 244px; gap:18px; align-items:start; }
+  #sg-journey .calendar { min-width:0; }
+  #sg-journey .assist { padding:16px; background:var(--sg-soft); border:1px solid var(--sg-line); border-radius:8px; }
+  #sg-journey .week { display:flex; justify-content:space-between; gap:3px; margin:15px 0; }
+  #sg-journey .week span { text-align:center; padding:7px 5px; flex:1; font-size:12px; color:var(--sg-muted); }
+  #sg-journey .week .chosen { border-bottom:2px solid var(--sg-green); background:var(--sg-tint); color:var(--sg-green); }
+  #sg-journey .table-wrap { overflow-x:auto; }
+  #sg-journey table { width:100%; min-width:405px; table-layout:fixed; border-collapse:collapse; font-size:12px; }
+  #sg-journey th { font-weight:400; text-align:left; color:var(--sg-muted); }
+  #sg-journey th:first-child { width:72px; }
+  #sg-journey td,#sg-journey th { padding:7px 3px; border-bottom:1px solid var(--sg-line); }
+  #sg-journey td { border-left:1px solid var(--sg-line); }
+  #sg-journey .shift { width:100%; padding:9px 4px; background:var(--sg-tint); color:var(--sg-green); border:0; border-radius:4px; text-align:center; white-space:nowrap; font-size:12px; }
+  #sg-journey button.shift { outline:1px solid var(--sg-green); outline-offset:-1px; }
+  #sg-journey .shift.proposed { outline:2px dashed var(--sg-blue); outline-offset:-2px; background:var(--sg-preview); color:var(--sg-blue); }
+  #sg-journey .coverage td { text-align:center; background:var(--sg-tint); color:var(--sg-green); }
+  #sg-journey .coverage td.gap { background:var(--sg-wash); color:var(--sg-warn); }
+  #sg-journey .coverage td button { font-size:12px; padding:4px; border:0; background:transparent; color:inherit; }
+  #sg-journey .assist button { margin-top:8px; }
+  #sg-journey .assist .field { margin-top:14px; }
+  #sg-journey .change { padding:12px 0; border-top:1px solid var(--sg-line); margin-top:12px; }
+  #sg-journey .change .before { text-decoration:line-through; color:var(--sg-muted); }
+  #sg-journey .check { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--sg-line); }
+  #sg-journey .check span:first-child { color:var(--sg-green); }
+  #sg-journey .foot { padding:12px 20px; border-top:1px solid var(--sg-line); color:var(--sg-muted); font-size:12px; }
+  #sg-journey .feedback { margin-top:14px; color:var(--sg-warn); }
+  #sg-journey.bottom-assist .editor-layout { grid-template-columns:1fr; }
+  #sg-journey.bottom-assist .assist { max-width:none; }
+  @media(max-width:900px) { #sg-journey .editor-layout { grid-template-columns:1fr; } }
+  @media(max-width:600px) { #sg-journey .shell { grid-template-columns:1fr; } #sg-journey .sidebar { display:flex; flex-wrap:wrap; border-right:0; border-bottom:1px solid var(--sg-line); padding:7px; } #sg-journey .sidebar span { margin:0; padding:7px 9px; } #sg-journey .main { padding:16px; } #sg-journey .period { grid-template-columns:1fr auto; gap:12px; } #sg-journey .period button { grid-column:1/-1; justify-self:start; } #sg-journey .source-row { grid-template-columns:62px 1fr; } #sg-journey .source-row button { grid-column:2; justify-self:start; } }
+  @media(pointer:coarse) { #sg-journey button { min-height:44px; } #sg-journey input,#sg-journey select { font-size:16px; } }
+</style>
+<div class="explore" aria-label="Choose a walkthrough"><span class="small muted">Explore:</span><button type="button" data-flow="new" aria-pressed="true">Create a new schedule</button><button type="button" data-flow="existing" aria-pressed="false">Edit a published schedule</button></div>
+<div class="app">
+  <header class="top"><span class="brand"><i data-lucide="sprout" aria-hidden="true"></i>ShiftGarden</span><span class="small muted">Connected wireframes · Sample data</span></header>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Application navigation"><span class="active">Planning</span><span>Staff</span><span>Groups</span><span>Institution</span></aside>
+    <main class="main">
+      <div class="crumb"><span>Planning</span><span>›</span><button type="button" class="quiet" data-action="overview">Sunflowers</button><span id="sj-crumb"></span></div>
+      <section data-screen="overview">
+        <div class="heading"><div><h2>Sunflowers</h2><p class="muted">Plan this group, one period at a time.</p></div><button type="button" class="primary" data-action="create">Create schedule</button></div>
+        <div class="period"><div><strong>7 September to 4 October 2026</strong><span class="muted small" id="sj-period-detail">Next planning period</span></div><span class="badge" id="sj-period-status">Not planned</span><button type="button" id="sj-period-action" data-action="period">Start planning</button></div>
+        <div class="notice" id="sj-overview-note">Institution, group and staff settings will be included automatically.</div>
+      </section>
+      <section data-screen="prepare" hidden>
+        <h2>Create a schedule</h2><p class="muted">Sunflowers · Prepare the period</p>
+        <div class="fields"><label class="field">Start date<input type="date" value="2026-09-07" readonly aria-label="Example start date"></label><label class="field">End date, included<input type="date" value="2026-10-04" readonly aria-label="Example end date"></label></div>
+        <h3>Usual settings</h3>
+        <details><summary>Institution · Opening hours</summary><p>Weekdays, 07:00 to 17:00. Weekends closed.</p></details>
+        <details><summary>Sunflowers · Required coverage</summary><p>1 staff from 07:00 to 09:00; 3 staff from 09:00 to 15:00; 1 staff from 15:00 to 17:00. At least 1 pedagog throughout.</p></details>
+        <details><summary>Staff · Availability, roles and weekly hours</summary><p>Anna and Jonas are pedagogs. Maja and Sara are assistants. Shared staff commitments in other groups are included.</p></details>
+        <div class="section"><h3>Exceptions affecting this period</h3>
+          <div class="source-row"><span>15 Sep</span><div>Anna unavailable from 13:00<small>Staff → Anna → Availability exceptions</small></div><button type="button" data-source="anna">View source</button></div>
+          <div class="source-row"><span>18 Sep</span><div>4 staff required, 09:00 to 12:00<small>Groups → Sunflowers → Staffing exceptions</small></div><button type="button" data-source="group">View source</button></div>
+          <div class="source-row"><span>25 Sep</span><div>Institution closed<small>Institution → Opening exceptions</small></div><button type="button" data-source="institution">View source</button></div>
+        </div>
+        <div class="actions"><button type="button" data-action="overview">Back to group</button><button type="button" class="primary" data-action="generate">Generate fresh draft</button></div>
+      </section>
+      <section data-screen="source" hidden>
+        <div class="heading"><div><h2 id="sj-source-title">Anna</h2><p class="muted" id="sj-source-parent">Staff · Availability exceptions</p></div><span class="badge">Source record</span></div>
+        <div class="notice"><strong id="sj-source-value">Unavailable from 13:00 on 15 September 2026</strong></div>
+        <p id="sj-source-effect" class="muted"></p>
+        <div class="actions"><button type="button" data-action="prepare">Return to schedule preparation</button></div>
+      </section>
+      <section data-screen="calendar" hidden>
+        <div class="heading"><div><h2>Sunflowers</h2><span class="muted">7 Sep to 4 Oct 2026</span> <span class="badge" id="sj-calendar-status">Draft</span></div><div class="row"><button type="button" data-action="overview">Save and close</button><button type="button" class="primary" id="sj-main-action" data-action="main">Review publication</button></div></div>
+        <div id="sj-version-note" class="notice" hidden>Published version 1 remains official while you work on this revision.</div>
+        <div class="editor-layout">
+          <div class="calendar">
+            <div class="row spread"><strong>Week of 14 September</strong><button type="button" class="quiet" data-action="undo" id="sj-undo" hidden>Undo last change</button></div>
+            <div class="week" aria-label="Week context; Tuesday is shown in this example"><span>Mon<br>14</span><span class="chosen">Tue<br>15</span><span>Wed<br>16</span><span>Thu<br>17</span><span>Fri<br>18</span></div>
+            <div class="notice preview" id="sj-preview-banner" hidden>Preview only · Changes have not been applied</div>
+            <div class="table-wrap"><table aria-label="Tuesday 15 September shift timeline"><thead><tr><th>Staff</th><th>07–09</th><th>09–11</th><th>11–13</th><th>13–15</th><th>15–17</th></tr></thead><tbody id="sj-shifts"></tbody><tfoot><tr class="coverage" id="sj-coverage"></tr></tfoot></table></div>
+            <div class="small muted" style="margin-top:10px">Coverage = staff scheduled / required · Jonas's shift is locked</div>
+            <div class="notice" id="sj-coverage-note"></div>
+            <div class="small muted" id="sj-edit-hint">Select Anna's shift to try a manual edit.</div>
+          </div>
+          <aside class="assist" aria-label="Calendar editing and AI assistance">
+            <div id="sj-panel-view"><h3>Published schedule</h3><p class="muted">Open a draft revision to make manual changes or ask AI for help.</p><button type="button" data-action="edit" class="primary">Edit schedule</button></div>
+            <div id="sj-panel-default" hidden><h3>Tuesday 15 September</h3><p class="muted" id="sj-assist-summary">Coverage is complete. Select a shift to make a change.</p><button type="button" data-action="edit-anna">Edit Anna's shift</button><button type="button" class="primary" data-action="ask" id="sj-ask" hidden>Ask AI to cover the gap</button></div>
+            <form id="sj-panel-manual" hidden><h3>Anna · Tue 15 Sep</h3><p class="small muted">Unavailable from 13:00 · Staff exception</p><label class="field">Start time<input value="07:00" readonly aria-label="Anna's start time"></label><label class="field">End time<select name="end" id="sj-end"><option value="11">11:00</option><option value="13">13:00</option></select></label><div class="actions"><button type="button" data-action="cancel-panel">Cancel</button><button type="submit" class="primary">Save shift</button></div></form>
+            <div id="sj-panel-proposal" hidden><h3>AI proposal</h3><p>Cover the gap on Tuesday.</p><div class="change"><strong>Sara · 15 Sep</strong><div class="before">13:00 to 15:00</div><div id="sj-proposed-time">11:00 to 15:00</div></div><p class="small muted">One shift changes. Anna's manual edit and Jonas's locked shift stay as they are.</p><p class="small" id="sj-proposal-check">Preview: total and pedagog coverage met.</p><button type="button" class="primary" data-action="apply">Apply proposal</button><button type="button" data-action="discard">Discard</button></div>
+          </aside>
+        </div>
+      </section>
+      <section data-screen="publish" hidden>
+        <h2 id="sj-publish-title">Review publication</h2><p class="muted">Sunflowers · 7 Sep to 4 Oct 2026</p>
+        <div class="section"><div class="check"><span>✓</span><div>Staff and pedagog coverage meets requirements</div></div><div class="check"><span>✓</span><div>Availability and dated exceptions respected</div></div><div class="check"><span>✓</span><div>Weekly hours and commitments in other groups checked</div></div></div>
+        <div class="section"><h3>Changes made in this draft</h3><div id="sj-change-summary"></div></div>
+        <div class="notice" id="sj-publish-effect">This becomes the official schedule for this group and period.</div>
+        <div class="actions"><button type="button" data-action="calendar">Back to calendar</button><button type="button" class="primary" data-action="publish" id="sj-publish-button">Publish schedule</button></div>
+      </section>
+      <section data-screen="complete" hidden>
+        <span class="badge good">Published</span><h2 style="margin-top:16px" id="sj-complete-title">Schedule published</h2><p class="muted">Sunflowers · 7 Sep to 4 Oct 2026</p><div class="notice good" id="sj-complete-note">Version 1 is now the official schedule.</div>
+        <div class="actions"><button type="button" data-action="overview">Back to group planning</button><button type="button" class="primary" data-action="open-published">Open schedule</button></div>
+      </section>
+      <div class="feedback" id="sj-feedback" role="status" aria-live="polite"></div>
+    </main>
+  </div>
+  <footer class="foot" id="sj-footer" aria-live="polite">Create flow · Group overview · Illustrative dates, generation and validation</footer>
+</div>
+<script>
+(() => {
+  const root = document.getElementById('sg-journey');
+  const $ = id => root.querySelector('#sj-' + id);
+  const initial = () => ({ anna:13, sara:13 });
+  let flow = 'new', screen = 'overview', published = null, version = 0, draft = null, revision = false, editing = false, panel = 'default', preview = false, undo = [];
+  const counts = data => [7,9,11,13,15].map(t => Number(t < data.anna) + Number(t >= 9 && t < 17) + Number(t >= 9 && t < 15) + Number(t >= data.sara && t < 15));
+  const gap = data => counts(data).some((v,i) => v < [1,3,3,3,1][i]);
+  const saveUndo = () => undo.push({...draft});
+  function message(text) { $('feedback').textContent = text; }
+  function go(next) { screen = next; message(''); render(); }
+  function format(n) { return String(n).padStart(2,'0') + ':00'; }
+  function showPanel(next) { panel = next; preview = false; render(); }
+  function renderCalendar() {
+    const current = editing ? draft : published;
+    if (!current) return;
+    const shown = preview ? {...current, sara:current.anna} : current;
+    const cells = (name,start,end,kind='') => {
+      const before = (start-7)/2, span = (end-start)/2, after = (17-end)/2;
+      const label = `${format(start)}–${format(end)}`;
+      const bar = name === 'Anna' && editing ? `<button type="button" class="shift" data-action="edit-anna" aria-label="Edit Anna's shift, ${label}">${label}</button>` : `<div class="shift ${kind}">${label}</div>`;
+      return `<tr><th>${name}${name === 'Jonas' ? '<br><span class="small">Locked</span>' : ''}</th>${before ? `<td colspan="${before}"></td>` : ''}<td colspan="${span}">${bar}</td>${after ? `<td colspan="${after}"></td>` : ''}</tr>`;
+    };
+    $('shifts').innerHTML = cells('Anna',7,shown.anna) + cells('Jonas',9,17) + cells('Maja',9,15) + cells('Sara',shown.sara,15,preview?'proposed':'');
+    $('coverage').innerHTML = '<th>Coverage</th>' + counts(shown).map((n,i) => `<td class="${n < [1,3,3,3,1][i]?'gap':''}">${n < [1,3,3,3,1][i] && editing ? `<button type="button" data-action="gap" aria-label="Coverage gap at ${format(7+2*i)}">! ${n}/${[1,3,3,3,1][i]}</button>` : `${n}/${[1,3,3,3,1][i]}`}</td>`).join('');
+    const hasGap = gap(current);
+    $('coverage-note').className = 'notice ' + (hasGap ? 'warn':'good');
+    $('coverage-note').textContent = hasGap ? 'Draft needs attention · 11:00 to 13:00 has 2 staff; 3 are required.' : 'Tuesday coverage complete · Total staffing and pedagog requirements met.';
+    $('preview-banner').hidden = !preview;
+    $('calendar-status').textContent = editing ? (revision ? `Draft revision · Based on v${version}` : 'Draft') : `Published · Version ${version}`;
+    $('version-note').hidden = !(editing && revision);
+    $('version-note').textContent = `Published version ${version} remains official while you work on this revision.`;
+    $('main-action').textContent = editing ? 'Review publication' : 'Edit schedule';
+    root.querySelector('[data-screen="calendar"] [data-action="overview"]').textContent = editing ? 'Save and close' : 'Back to group';
+    $('undo').hidden = !editing || !undo.length;
+    $('edit-hint').hidden = !editing;
+    $('edit-hint').textContent = preview ? 'Dashed blue shift = proposed change. The draft is unchanged.' : 'Select Anna’s shift to edit it; coverage updates after saving.';
+    ['view','default','manual','proposal'].forEach(name => $('panel-'+name).hidden = name !== (!editing ? 'view' : panel));
+    $('ask').hidden = !hasGap;
+    $('assist-summary').textContent = hasGap ? 'One staff member is missing from 11:00 to 13:00. Fix the draft manually or ask AI for a proposal.' : 'Coverage is complete. Select a shift to make a change.';
+  }
+  function render() {
+    root.querySelectorAll('[data-screen]').forEach(el => el.hidden = el.dataset.screen !== screen);
+    root.querySelectorAll('[data-flow]').forEach(el => el.setAttribute('aria-pressed',String(el.dataset.flow === flow)));
+    $('crumb').textContent = screen === 'overview' ? '' : '› ' + ({prepare:'New schedule',source:'Exception source',calendar:'Schedule',publish:'Publication review',complete:'Published'}[screen] || '');
+    $('period-status').textContent = draft ? (published?'Revision in progress':'Draft') : published ? 'Published' : 'Not planned';
+    $('period-status').className = 'badge' + (published && !draft?' good':'');
+    $('period-detail').textContent = published ? `Official version ${version}${draft?' · Unpublished changes saved':''}` : draft?'Draft saved · Ready to continue':'Next planning period';
+    $('period-action').textContent = draft ? 'Continue draft' : published ? 'Open schedule':'Start planning';
+    $('overview-note').textContent = published ? 'To change this period, open its schedule. Create schedule starts a separate period.' : 'Institution, group and staff settings will be included automatically.';
+    $('footer').textContent = `${flow === 'new'?'Create':'Edit'} flow · ${{overview:'Group overview',prepare:'Prepare period',source:'Owned exception record',calendar:editing?'Calendar editor':'Published calendar',publish:'Review publication',complete:'Published'}[screen]} · Sample dates, generation and checks`;
+    if(screen === 'calendar') renderCalendar();
+    if(screen === 'publish') {
+      $('publish-title').textContent = revision ? 'Review revision' : 'Review publication';
+      $('publish-button').textContent = revision ? 'Publish revision' : 'Publish schedule';
+      $('publish-effect').textContent = revision ? `Publishing creates version ${version+1}. Version ${version} remains available in history.` : 'This becomes the official schedule for this group and period.';
+      const baseline = published || initial();
+      const changes = [];
+      if(draft.anna !== baseline.anna) changes.push(`Anna · Tue 15 Sep · ${format(7)}–${format(baseline.anna)} → ${format(7)}–${format(draft.anna)}`);
+      if(draft.sara !== baseline.sara) changes.push(`Sara · Tue 15 Sep · ${format(baseline.sara)}–15:00 → ${format(draft.sara)}–15:00`);
+      $('change-summary').replaceChildren(...(changes.length ? changes : ['No changes since ' + (published?'the published version.':'fresh generation.')]).map(text => {const p=document.createElement('p');p.textContent=text;return p;}));
+    }
+  }
+  function beginEdit() { if(!draft) { draft={...published}; revision=true; undo=[]; } editing=true;panel='default';preview=false;go('calendar'); }
+  function askAI() { if(!gap(draft)) { message('There is no coverage gap in the selected day.');return; } panel='proposal';preview=true;go('calendar'); }
+  function act(action) {
+    if(action === 'overview') { preview=false;panel='default';go('overview'); }
+    if(action === 'create') { if(published || draft) { message('The example period already has a schedule. Open it to edit, or use the Create walkthrough to explore a new period.');return; } go('prepare'); }
+    if(action === 'period') { if(draft) {editing=true;panel='default';go('calendar');} else if(published) {editing=false;go('calendar');} else go('prepare'); }
+    if(action === 'prepare') go('prepare');
+    if(action === 'generate') {draft=initial();undo=[];revision=false;editing=true;panel='default';preview=false;go('calendar');}
+    if(action === 'edit') beginEdit();
+    if(action === 'main') {
+      if(!editing) {beginEdit();return;}
+      if(gap(draft)) {message('Resolve the draft coverage gap before publication. An AI preview must be applied first.');return;}
+      if(preview) {message('Apply or discard the proposed changes before publication.');return;}
+      go('publish');
+    }
+    if(action === 'edit-anna') {showPanel('manual');$('end').value=String(draft.anna);}
+    if(action === 'cancel-panel') showPanel('default');
+    if(action === 'gap') {showPanel('default');message('Tuesday 11:00 to 13:00 · 2 staff scheduled, 3 required.');}
+    if(action === 'ask') askAI();
+    if(action === 'discard') {showPanel('default');message('Proposal discarded. The draft is unchanged.');}
+    if(action === 'apply') {saveUndo();draft={...draft,sara:draft.anna};panel='default';preview=false;go('calendar');message('Proposal applied to the draft. Coverage rechecked.');}
+    if(action === 'undo') {if(undo.length) {draft=undo.pop();panel='default';preview=false;go('calendar');message('Last change undone.');}}
+    if(action === 'calendar') {panel='default';preview=false;go('calendar');}
+    if(action === 'publish') {
+      if(gap(draft)) {go('calendar');message('Resolve the coverage gap before publication.');return;}
+      published={...draft};draft=null;version+=1;editing=false;revision=false;undo=[];
+      $('complete-title').textContent=version > 1 ? 'Revision published' : 'Schedule published';
+      $('complete-note').textContent=`Version ${version} is now the official schedule.${version>1?` Version ${version-1} is retained in history.`:''}`;
+      go('complete');
+    }
+    if(action === 'open-published') {editing=false;preview=false;go('calendar');}
+  }
+  const sources = {
+    anna:['Anna','Staff · Availability exceptions','15 September 2026 · Unavailable from 13:00','Applies to Anna in every group she is assigned to. The planner sees it automatically when the dates overlap.'],
+    group:['Sunflowers','Groups · Staffing exceptions','18 September 2026 · 4 staff required, 09:00 to 12:00','Applies to this group for this time range. It does not change other groups or staff availability.'],
+    institution:['Institution','Institution · Opening exceptions','25 September 2026 · Closed all day','Applies across the institution. All relevant group schedules must account for the closure.']
+  };
+  root.addEventListener('click', event => {
+    const button=event.target.closest('button');if(!button || !root.contains(button))return;
+    if(button.dataset.flow) {
+      flow=button.dataset.flow;published=flow==='existing'?initial():null;version=published?1:0;draft=null;editing=false;revision=false;preview=false;panel='default';undo=[];go('overview');
+    } else if(button.dataset.source) {
+      const source=sources[button.dataset.source];['source-title','source-parent','source-value','source-effect'].forEach((key,i)=>$(key).textContent=source[i]);go('source');
+    } else if(button.dataset.action) act(button.dataset.action);
+  });
+  $('panel-manual').addEventListener('submit',event=>{event.preventDefault();saveUndo();draft={...draft,anna:Number($('end').value)};panel='default';preview=false;go('calendar');message('Manual change saved to the draft. Coverage rechecked.');});
+  const design={assistant:'Beside calendar'};
+  if(globalThis.Tweak) {const tweak=new Tweak({container:root,onChange:()=>root.classList.toggle('bottom-assist',design.assistant==='Below calendar')});tweak.addSelect(design,'assistant',{label:'Assistant placement',options:['Beside calendar','Below calendar']});}
+  render();
+})();
+</script>
+</div>
