@@ -829,6 +829,7 @@ function ShiftBlock({
 }) {
   const t = useTranslations("planning")
   const [preview, setPreview] = useState<{ start: string; end: string }>()
+  const locale = usePlanningLocale()
   const [drag, setDrag] = useState<{
     x: number
     start: number
@@ -836,6 +837,12 @@ function ShiftBlock({
     mode: "move" | "start" | "end"
   }>()
   const shown = preview ?? { start: shift.startTime, end: shift.endTime }
+  const duration = t("shiftHours", {
+    hours: new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(
+      (minutes(shown.end) - minutes(shown.start)) / 60
+    ),
+  })
+  const label = `${shown.start}-${shown.end} (${duration})`
   function pointerDown(
     event: ReactPointerEvent<HTMLElement>,
     mode: "move" | "start" | "end"
@@ -891,9 +898,10 @@ function ShiftBlock({
       type="button"
       aria-label={
         editable && !shift.locked
-          ? t("shiftLabel", { start: shown.start, end: shown.end })
-          : `${shown.start}–${shown.end}`
+          ? t("shiftLabel", { start: shown.start, end: shown.end, duration })
+          : label
       }
+      title={label}
       onClick={onSelect}
       onPointerDown={(event) => pointerDown(event, "move")}
       onPointerMove={pointerMove}
@@ -908,9 +916,7 @@ function ShiftBlock({
     >
       <span className="flex items-center gap-1">
         {shift.locked ? <Lock className="size-3" /> : null}
-        <span className="truncate">
-          {shown.start}-{shown.end}
-        </span>
+        <span className="truncate">{label}</span>
       </span>
       {editable && !shift.locked ? (
         <>
